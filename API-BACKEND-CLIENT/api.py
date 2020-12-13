@@ -10,12 +10,13 @@ class Playback(Resource):
     def post(self):
         data = request.get_json()
         # print(data["methode"])
-        if "methode" in data and "displayname" in data and "device_ips" in data:
-            print("jo")
+        if data is None:
+            return {"error": "No data supplied"}, 400
+        if "methode" not in data or "displayname" not in data or "device_ips" not in data:
+            return {"error": "Body must contain methode, displayname, device_ips"}, 400
+        else:
             # activate Bluetooth, trx multicast server and send GET to Client-Client\listen with multicast_ip
             return
-        else:
-            return {"ERROR":"Wrong JSON"},404
 
     def delete(self):
         # deactivate Bluetooth & send DELETE to Client-Client\listen
@@ -29,4 +30,4 @@ api.add_resource(Playback,"/api/v1/playback")
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=3100)
+    app.run(port=3010)
