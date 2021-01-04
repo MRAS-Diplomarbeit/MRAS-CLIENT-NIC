@@ -4,7 +4,7 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-apt-get install git libasound2-dev libopus-dev libortp-dev libasound2-doc
+apt-get install git libasound2-dev libopus-dev libortp-dev libasound2-doc build-essentials
 git clone http://www.pogo.org.uk/~mark/trx.git
 make
 make install
