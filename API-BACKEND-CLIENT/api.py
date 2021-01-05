@@ -5,10 +5,51 @@ from flask_restful import Api, Resource
 
 import constants as const
 import req
-import asyncio
+import sys
+import load_config
+import os
+import platform
 
 app = Flask(__name__)
 api = Api(app)
+
+conf_client_backend = load_config.client_backend("../.env.yml")
+conf_client_client = load_config.client_client("../.env.yml")
+
+
+def errHandling(error, api):
+    if type(error) is TypeError:
+        print("Please provide all required fields for: "+api+" in the .env.yml")
+    elif type(error) is KeyError:
+        print("Please provide all required fields for: "+api+" in the .env.yml")
+    else:
+        print("Error loading config file. Please provide .env.yml in the project root folder.")
+        dir = os.getcwd()
+        if platform.system() == 'Linux':
+            print("The root folder is: " + dir[0:dir.rfind("/") + 1])
+        elif platform.system() == 'Windows':
+            print("The root folder is: " + dir[0:dir.rfind("\\") + 1])
+        print(error)
+    sys.exit(-1)
+
+
+if conf_client_backend.error is not None or conf_client_client.error is not None:
+    if conf_client_backend.error is not None:
+        errHandling(conf_client_backend.error, "client-backend")
+    elif conf_client_client.error is not None:
+        errHandling(conf_client_client.error, "client-cleint")
+    # if type(conf_client_backend.error) is TypeError or type(conf_client_client) is TypeError:
+    #     print("Please provide all required fields in the .env.yml")
+    # elif type(conf_client_backend.error) is KeyError or type(conf_client_client.error) is KeyError:
+    #     print("Please provide all required fields in the .env.yml")
+    # else:
+    #     print("Error loading config file. Please provide .env.yml in the project root folder.")
+    #     dir = os.getcwd()
+    #     if platform.system() == 'Linux':
+    #         print("The root folder is: "+dir[0:dir.rfind("/")+1])
+    #     elif platform.system() == 'Windows':
+    #         print("The root folder is: " + dir[0:dir.rfind("\\")+1])
+    #     print(conf_client_backend.error)
 
 
 class Playback(Resource):
@@ -51,7 +92,7 @@ class Playback(Resource):
             # Create parameter for get requests (Client-Client)
             getdata = "multicast_ip=" + multicast + "&methode=" + data['methode']
             for ip in data['device_ips']:
-                urls.append(const.clientClientProtocoll + "://" + ip + ":" + str(
+                urls.append(conf_client_backend.protocol + "://" + ip + ":" + str(
                     const.clientClientPort) + const.clientClientApiPath + "?" + getdata)
 
             # send requests
@@ -80,7 +121,7 @@ class Playback(Resource):
         return {"error": "Not Implemented"}
 
 
-api.add_resource(Playback, "/api/v1/playback")
+api.add_resource(Playback, conf_client_backend.path)
 
 # @app.route('/')
 # def hello_world():
@@ -89,5 +130,6 @@ api.add_resource(Playback, "/api/v1/playback")
 
 if __name__ == '__main__':
     from gevent import monkey
+
     monkey.patch_all()
-    app.run(port=3010)
+    app.run(port=conf_client_backend.port, debug=False, threaded=True)
