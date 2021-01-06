@@ -26,6 +26,8 @@ class Listen(Resource):
     def delete(self):
         # TODO: Stop listening
         global is_listening
+        if not is_listening:
+            return {'code': 400, 'message': 'Currently not listening'}
         is_listening = False
         return
 
@@ -33,4 +35,4 @@ class Listen(Resource):
 api.add_resource(Listen, '/api/v1/listen')
 
 if __name__ == '__main__':
-    app.run(port=3020, debug=False)
+    app.run(host="0.0.0.0", port=3020, debug=False, threaded=False)

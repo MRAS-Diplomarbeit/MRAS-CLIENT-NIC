@@ -2,26 +2,32 @@
 # curious_george.patch_all(thread=False, select=False)
 from flask import Flask, request
 from flask_restful import Api, Resource
+from datetime import datetime, date
 
-import constants as const
 import req
 import sys
 import load_config
 import os
 import platform
+import logging
 
 app = Flask(__name__)
 api = Api(app)
 
-conf_client_backend = load_config.client_backend("../.env.yml")
-conf_client_client = load_config.client_client("../.env.yml")
+conf_client_backend = load_config.ClientBackend("../.env.yml")
+conf_client_client = load_config.ClientClient("../.env.yml")
+conf_logfile = load_config.Client("../.env.yml")
 
 
 def errHandling(error, api):
     if type(error) is TypeError:
-        print("Please provide all required fields for: "+api+" in the .env.yml")
+        print("Please provide all required fields for: " + api + " in the .env.yml")
+        logging.error(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+            "%H:%M:%S") + " Please provide all required fields for: " + api + " in the .env.yml")
     elif type(error) is KeyError:
-        print("Please provide all required fields for: "+api+" in the .env.yml")
+        print("Please provide all required fields for: " + api + " in the .env.yml")
+        logging.error(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+            "%H:%M:%S") + " Please provide all required fields for: " + api + " in the .env.yml")
     else:
         print("Error loading config file. Please provide .env.yml in the project root folder.")
         dir = os.getcwd()
@@ -30,26 +36,23 @@ def errHandling(error, api):
         elif platform.system() == 'Windows':
             print("The root folder is: " + dir[0:dir.rfind("\\") + 1])
         print(error)
+    logging.error("Shutting down due to errors at config file")
     sys.exit(-1)
 
 
-if conf_client_backend.error is not None or conf_client_client.error is not None:
+if conf_logfile.error is not None or conf_client_backend.error is not None or conf_client_client.error is not None:
+    if conf_logfile.error is not None:
+        logging.basicConfig(filename="../log.txt", level=logging.DEBUG)
+        logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+            "%H:%M:%S") + " Please provide a location for the log file")
+    else:
+        logging.basicConfig(filename=conf_logfile.logpath, level=logging.DEBUG)
     if conf_client_backend.error is not None:
         errHandling(conf_client_backend.error, "client-backend")
     elif conf_client_client.error is not None:
         errHandling(conf_client_client.error, "client-cleint")
-    # if type(conf_client_backend.error) is TypeError or type(conf_client_client) is TypeError:
-    #     print("Please provide all required fields in the .env.yml")
-    # elif type(conf_client_backend.error) is KeyError or type(conf_client_client.error) is KeyError:
-    #     print("Please provide all required fields in the .env.yml")
-    # else:
-    #     print("Error loading config file. Please provide .env.yml in the project root folder.")
-    #     dir = os.getcwd()
-    #     if platform.system() == 'Linux':
-    #         print("The root folder is: "+dir[0:dir.rfind("/")+1])
-    #     elif platform.system() == 'Windows':
-    #         print("The root folder is: " + dir[0:dir.rfind("\\")+1])
-    #     print(conf_client_backend.error)
+else:
+    logging.basicConfig(filename=conf_logfile.logpath, level=logging.DEBUG)
 
 
 class Playback(Resource):
@@ -57,9 +60,13 @@ class Playback(Resource):
         data = request.get_json()
 
         if data is None:
+            logging.info(date.today().strftime("%d/%m/%Y") + "-" +
+                         datetime.now().strftime("%H:%M:%S") + " 400 - Server did not supply data.")
             return {"error": "No data supplied"}, 400
 
         elif "methode" not in data or "displayname" not in data or "device_ips" not in data:
+            logging.info(date.today().strftime("%d/%m/%Y")+"-"+datetime.now().strftime("%H:%M:%S") +
+                         "400 - Server did not supply all necessary data.")
             return {"error": "Body must contain methode, displayname, device_ips"}, 400
 
         else:
@@ -88,12 +95,15 @@ class Playback(Resource):
             # TODO: send error as response to backend
             # TODO: activate Bluetooth, trx multicast server and send GET to Client-Client\listen with multicast_ip
             urls = []
-
+            logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") +
+                         " Starting listening session on: " + multicast + " with the interface: " + data[
+                             'methode'] + " on the devices:")
             # Create parameter for get requests (Client-Client)
             getdata = "multicast_ip=" + multicast + "&methode=" + data['methode']
-            for ip in data['device_ips']:
-                urls.append(conf_client_backend.protocol + "://" + ip + ":" + str(
-                    const.clientClientPort) + const.clientClientApiPath + "?" + getdata)
+            for num, ip in enumerate(data['device_ips']):
+                urls.append(conf_client_client.protocol + "://" + ip + ":" + str(
+                    conf_client_client.port) + conf_client_client.path + "?" + getdata)
+                logging.info("\t" + urls[num])
 
             # send requests
             # urls.append("http://localhost:3020/api/v1/test")
@@ -132,4 +142,4 @@ if __name__ == '__main__':
     from gevent import monkey
 
     monkey.patch_all()
-    app.run(port=conf_client_backend.port, debug=False, threaded=True)
+    app.run(host="0.0.0.0", port=conf_client_backend.port, debug=False, threaded=True)
