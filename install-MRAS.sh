@@ -6,7 +6,8 @@ fi
 
 mkdir MRAS
 cd MRAS
-apt-get install git libasound2-dev libopus-dev libortp-dev libasound2-doc build-essentials python3-pip alsa-base
+apt-get update
+apt-get install git libasound2-dev libopus-dev libortp-dev libasound2-doc build-essentials python3-pip alsa-base alsa-utils -y
 git clone http://www.pogo.org.uk/~mark/trx.git
 cd trx
 make

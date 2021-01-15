@@ -10,6 +10,7 @@ import load_config
 import os
 import platform
 import logging
+import status_codes
 
 app = Flask(__name__)
 api = Api(app)
@@ -61,15 +62,15 @@ class Playback(Resource):
 
         if data is None:
             logging.info(date.today().strftime("%d/%m/%Y") + "-" +
-                         datetime.now().strftime("%H:%M:%S") + " 400 - Server did not supply data.")
-            return {"error": "No data supplied"}, 400
+                         datetime.now().strftime("%H:%M:%S") + status_codes.bad_request + " - Server did not supply data.")
+            return {"error": "No data supplied"}, status_codes.bad_request
 
         elif "methode" not in data or "displayname" not in data or "device_ips" not in data:
             logging.info(date.today().strftime("%d/%m/%Y")+"-"+datetime.now().strftime("%H:%M:%S") +
-                         "400 - Server did not supply all necessary data.")
-            return {"error": "Body must contain methode, displayname, device_ips"}, 400
+                         status_codes.bad_request+" - Server did not supply all necessary data.")
+            return {"error": "Body must contain methode, displayname, device_ips"}, status_codes.bad_request
 
-        else:
+        elif len(data['device_ips'])!=0:
             print(data["device_ips"])
             multicast = "127.0.0.1"  # TODO: set real multicast ip
             err_list = []
@@ -112,9 +113,9 @@ class Playback(Resource):
             for num, response in enumerate(resp):
                 if response is None:
                     dead_ips.append(data['device_ips'][num])
-                elif response.status_code == 500:
-                    err_list.append({'code': 500, 'message': 'Internalservererror at: ' + data['device_ips'][num]})
-                elif response.status_code != 200:
+                elif response.status_code == status_codes.internal_server_error:
+                    err_list.append({'code': status_codes.internal_server_error, 'message': 'Internalservererror at: ' + data['device_ips'][num]})
+                elif response.status_code != status_codes.ok:
                     err_list.append({'code': response.status_code, 'message': 'Server probably not running'})
                     dead_ips.append(data['device_ips'][num])
 
@@ -122,10 +123,12 @@ class Playback(Resource):
             print(err_list)
 
             if len(dead_ips) != 0:
-                return {'error': {'code': 15, 'message': 'Device/s unavailable'}, 'dead_ips': dead_ips}, 404
+                return {'error': {'code': status_codes.not_found, 'message': 'Device/s unavailable'}, 'dead_ips': dead_ips}, status_codes.not_found
 
             return
-
+        else:
+            # TODO: Activate Bluetooth and play on local pi
+            return
     def delete(self):
         # TODO: deactivate Bluetooth & send DELETE to Client-Client\listen
         return {"error": "Not Implemented"}
