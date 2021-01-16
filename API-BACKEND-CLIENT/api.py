@@ -60,17 +60,21 @@ class Playback(Resource):
     def post(self):
         data = request.get_json()
 
+        params_present = data_available(data, ["method", "displayname", "device_ips"])
+        if params_present != status_codes.ok:
+            pass
         if data is None:
             logging.info(date.today().strftime("%d/%m/%Y") + "-" +
-                         datetime.now().strftime("%H:%M:%S") + status_codes.bad_request + " - Server did not supply data.")
+                         datetime.now().strftime(
+                             "%H:%M:%S") + str(status_codes.bad_request) + " - Server did not supply data.")
             return {"error": "No data supplied"}, status_codes.bad_request
 
-        elif "methode" not in data or "displayname" not in data or "device_ips" not in data:
-            logging.info(date.today().strftime("%d/%m/%Y")+"-"+datetime.now().strftime("%H:%M:%S") +
-                         status_codes.bad_request+" - Server did not supply all necessary data.")
-            return {"error": "Body must contain methode, displayname, device_ips"}, status_codes.bad_request
+        elif "method" not in data or "displayname" not in data or "device_ips" not in data:
+            logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") +
+                         str(status_codes.bad_request) + " - Server did not supply all necessary data.")
+            return {"error": "Body must contain method, displayname, device_ips"}, status_codes.bad_request
 
-        elif len(data['device_ips'])!=0:
+        elif len(data['device_ips']) != 0:
             print(data["device_ips"])
             multicast = "127.0.0.1"  # TODO: set real multicast ip
             err_list = []
@@ -78,8 +82,8 @@ class Playback(Resource):
 
             # Synchros requests
             # for ip in data["device_ips"]:
-            #     data = {'multicast_ip': multicast, 'methode': data['methode']}
-            #     #getdata = "multicast_ip="+multicast+"&methode="+data['methode']
+            #     data = {'multicast_ip': multicast, 'method': data['method']}
+            #     #getdata = "multicast_ip="+multicast+"&method="+data['method']
             #     # resp = await req.req_listen_get_a(const.clientClientProtocoll, ip, const.clientClientApiPath, data)
             #     # not running as thread to respond to request from backend
             #
@@ -98,9 +102,9 @@ class Playback(Resource):
             urls = []
             logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") +
                          " Starting listening session on: " + multicast + " with the interface: " + data[
-                             'methode'] + " on the devices:")
+                             'method'] + " on the devices:")
             # Create parameter for get requests (Client-Client)
-            getdata = "multicast_ip=" + multicast + "&methode=" + data['methode']
+            getdata = "multicast_ip=" + multicast + "&method=" + data['method']
             for num, ip in enumerate(data['device_ips']):
                 urls.append(conf_client_client.protocol + "://" + ip + ":" + str(
                     conf_client_client.port) + conf_client_client.path + "?" + getdata)
@@ -114,7 +118,8 @@ class Playback(Resource):
                 if response is None:
                     dead_ips.append(data['device_ips'][num])
                 elif response.status_code == status_codes.internal_server_error:
-                    err_list.append({'code': status_codes.internal_server_error, 'message': 'Internalservererror at: ' + data['device_ips'][num]})
+                    err_list.append({'code': status_codes.internal_server_error,
+                                     'message': 'Internalservererror at: ' + data['device_ips'][num]})
                 elif response.status_code != status_codes.ok:
                     err_list.append({'code': response.status_code, 'message': 'Server probably not running'})
                     dead_ips.append(data['device_ips'][num])
@@ -123,18 +128,30 @@ class Playback(Resource):
             print(err_list)
 
             if len(dead_ips) != 0:
-                return {'error': {'code': status_codes.not_found, 'message': 'Device/s unavailable'}, 'dead_ips': dead_ips}, status_codes.not_found
+                return {'error': {'code': status_codes.not_found, 'message': 'Device/s unavailable'},
+                        'dead_ips': dead_ips}, status_codes.not_found
 
             return
         else:
             # TODO: Activate Bluetooth and play on local pi
             return
+
     def delete(self):
         # TODO: deactivate Bluetooth & send DELETE to Client-Client\listen
         return {"error": "Not Implemented"}
 
 
 api.add_resource(Playback, conf_client_backend.path)
+
+
+def data_available(data, should_include):
+    if data is None:
+        return status_codes.bad_request
+    for param in should_include:
+        if param not in data:
+            return status_codes.bad_request
+    else:
+        return status_codes.ok
 
 
 if __name__ == '__main__':

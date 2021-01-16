@@ -16,7 +16,7 @@ class Listen(Resource):
         data = request.args
         if data is None:
             return {'code': 400, 'message': 'Please provide data'}, 400
-        elif 'multicast_ip' not in data or 'methode' not in data:
+        elif 'multicast_ip' not in data or 'method' not in data:
             print("error")
             return 400
         # TODO: Listen to multicast ip
