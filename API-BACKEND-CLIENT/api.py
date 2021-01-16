@@ -62,17 +62,19 @@ class Playback(Resource):
 
         params_present = data_available(data, ["method", "displayname", "device_ips"])
         if params_present != status_codes.ok:
-            pass
-        if data is None:
-            logging.info(date.today().strftime("%d/%m/%Y") + "-" +
-                         datetime.now().strftime(
-                             "%H:%M:%S") + str(status_codes.bad_request) + " - Server did not supply data.")
-            return {"error": "No data supplied"}, status_codes.bad_request
+            if params_present == status_codes.bad_request:
+                return {'code': status_codes.bad_request, "message": "Please provide all necessary data"}, status_codes.bad_request
 
-        elif "method" not in data or "displayname" not in data or "device_ips" not in data:
-            logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") +
-                         str(status_codes.bad_request) + " - Server did not supply all necessary data.")
-            return {"error": "Body must contain method, displayname, device_ips"}, status_codes.bad_request
+        # if data is None:
+        #     logging.info(date.today().strftime("%d/%m/%Y") + "-" +
+        #                  datetime.now().strftime(
+        #                      "%H:%M:%S") + str(status_codes.bad_request) + " - Server did not supply data.")
+        #     return {"error": "No data supplied"}, status_codes.bad_request
+        #
+        # elif "method" not in data or "displayname" not in data or "device_ips" not in data:
+        #     logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") +
+        #                  str(status_codes.bad_request) + " - Server did not supply all necessary data.")
+        #     return {"error": "Body must contain method, displayname, device_ips"}, status_codes.bad_request
 
         elif len(data['device_ips']) != 0:
             print(data["device_ips"])
