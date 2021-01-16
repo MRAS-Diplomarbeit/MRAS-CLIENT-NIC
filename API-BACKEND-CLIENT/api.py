@@ -60,10 +60,18 @@ class Playback(Resource):
     def post(self):
         data = request.get_json()
 
+        # Test if all params are included
         params_present = data_available(data, ["method", "displayname", "device_ips"])
-        if params_present != status_codes.ok:
-            if params_present == status_codes.bad_request:
-                return {'code': status_codes.bad_request, "message": "Please provide all necessary data"}, status_codes.bad_request
+        if params_present['code'] != status_codes.ok:
+            if params_present['code'] == status_codes.bad_request:
+                if len(params_present['missing']) == 1:
+                    return {'code': status_codes.single_param_missing,
+                            "message": "Please provide all necessary data " + str(params_present['missing']).replace(
+                                "'", "")}, status_codes.bad_request
+                else:
+                    return {'code': status_codes.multiple_param_missing,
+                            "message": "Please provide all necessary data " + str(params_present['missing']).replace(
+                                "'", "")}, status_codes.bad_request
 
         # if data is None:
         #     logging.info(date.today().strftime("%d/%m/%Y") + "-" +
@@ -113,15 +121,13 @@ class Playback(Resource):
                 logging.info("\t" + urls[num])
 
             # send requests
-            # urls.append("http://localhost:3020/api/v1/test")
             resp = req.greq(urls)
             print(resp)
             for num, response in enumerate(resp):
                 if response is None:
                     dead_ips.append(data['device_ips'][num])
                 elif response.status_code == status_codes.internal_server_error:
-                    err_list.append({'code': status_codes.internal_server_error,
-                                     'message': 'Internalservererror at: ' + data['device_ips'][num]})
+                    err_list.append({'code': status_codes.server_error_at_client, 'ip': data['device_ips'][num]})
                 elif response.status_code != status_codes.ok:
                     err_list.append({'code': response.status_code, 'message': 'Server probably not running'})
                     dead_ips.append(data['device_ips'][num])
@@ -130,9 +136,13 @@ class Playback(Resource):
             print(err_list)
 
             if len(dead_ips) != 0:
-                return {'error': {'code': status_codes.not_found, 'message': 'Device/s unavailable'},
+                return {'error': {'code': status_codes.client_not_found, 'message': 'Device/s unavailable'},
                         'dead_ips': dead_ips}, status_codes.not_found
-
+            elif len(err_list) != 0:
+                ips = []
+                for e in err_list:
+                    ips.append(e['ip'])
+                return {'error': {'code': status_codes.server_error_at_client, 'message': 'Internal Server Error at IPs'}, 'dead_ips': ips}
             return
         else:
             # TODO: Activate Bluetooth and play on local pi
@@ -140,6 +150,7 @@ class Playback(Resource):
 
     def delete(self):
         # TODO: deactivate Bluetooth & send DELETE to Client-Client\listen
+
         return {"error": "Not Implemented"}
 
 
@@ -149,15 +160,18 @@ api.add_resource(Playback, conf_client_backend.path)
 def data_available(data, should_include):
     if data is None:
         return status_codes.bad_request
+    missing_param = []
     for param in should_include:
         if param not in data:
-            return status_codes.bad_request
+            missing_param.append(param)
+    if len(missing_param) != 0:
+        return {'code': status_codes.bad_request, 'missing': missing_param}
     else:
-        return status_codes.ok
+        return {'code': status_codes.ok}
 
 
 if __name__ == '__main__':
     from gevent import monkey
 
     monkey.patch_all()
-    app.run(host="0.0.0.0", port=conf_client_backend.port, debug=False, threaded=True)
+    app.run(host="0.0.0.0", port=conf_client_backend.port, debug=True, threaded=True)
