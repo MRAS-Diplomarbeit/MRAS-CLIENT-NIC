@@ -27,7 +27,7 @@ class Listen(Resource):
         # TODO: Stop listening
         global is_listening
         if not is_listening:
-            return {'code': 400, 'message': 'Currently not listening'}
+            return {'code': 400, 'message': 'Currently not listening'}, 400
         is_listening = False
         return
 

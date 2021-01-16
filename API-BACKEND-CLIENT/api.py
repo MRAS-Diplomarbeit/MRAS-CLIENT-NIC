@@ -121,7 +121,7 @@ class Playback(Resource):
                 logging.info("\t" + urls[num])
 
             # send requests
-            resp = req.greq(urls)
+            resp = req.greq_post(urls)
             print(resp)
             for num, response in enumerate(resp):
                 if response is None:
@@ -131,6 +131,7 @@ class Playback(Resource):
                 elif response.status_code != status_codes.ok:
                     err_list.append({'code': response.status_code, 'message': 'Server probably not running'})
                     dead_ips.append(data['device_ips'][num])
+                # TODO: ADD test for status_code 400
 
             print(dead_ips)
             print(err_list)
@@ -150,8 +151,30 @@ class Playback(Resource):
 
     def delete(self):
         # TODO: deactivate Bluetooth & send DELETE to Client-Client\listen
+        data = request.get_json()
+        params_present = data_available(data, ['ips'])
+        if params_present['code'] != status_codes.ok:
+            if params_present['code'] == status_codes.bad_request:
+                return {'code': status_codes.single_param_missing, "message": "Please provide all necessary data " + str(params_present['missing']).replace("'", "")}, status_codes.bad_request
+        else:
+            urls = []
+            for num, ip in enumerate(data['ips']):
+                urls.append(conf_client_client.protocol+"://"+ip+":"+str(conf_client_client.port) + conf_client_client.path)
+            resp = req.greq_delete(urls)
+            print(resp)
+            dead_ip = []
+            not_listening = []
+            for num, response in enumerate(resp):
+                if response is None:
+                    dead_ip.append(data['ips'][num])
+                elif response.status_code == status_codes.bad_request:
+                    not_listening.append(data['ips'][num])
+                elif response.status_code != status_codes.ok:
+                    dead_ip.append(data['ips'][num])
 
-        return {"error": "Not Implemented"}
+            if len(not_listening) != 0:
+                return {'code': status_codes.client_not_listening, 'message': str(not_listening).replace("'", "") + " is currently not listening"}
+            return
 
 
 api.add_resource(Playback, conf_client_backend.path)
@@ -159,7 +182,7 @@ api.add_resource(Playback, conf_client_backend.path)
 
 def data_available(data, should_include):
     if data is None:
-        return status_codes.bad_request
+        return {'code': status_codes.bad_request, 'missing': should_include}
     missing_param = []
     for param in should_include:
         if param not in data:
@@ -174,4 +197,4 @@ if __name__ == '__main__':
     from gevent import monkey
 
     monkey.patch_all()
-    app.run(host="0.0.0.0", port=conf_client_backend.port, debug=True, threaded=True)
+    app.run(host="0.0.0.0", port=conf_client_backend.port, debug=False, threaded=True)
