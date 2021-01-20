@@ -11,6 +11,7 @@ import os
 import platform
 import logging
 import status_codes
+import bluetooth
 
 app = Flask(__name__)
 api = Api(app)
@@ -144,9 +145,16 @@ class Playback(Resource):
                 for e in err_list:
                     ips.append(e['ip'])
                 return {'error': {'code': status_codes.server_error_at_client, 'message': 'Internal Server Error at IPs'}, 'dead_ips': ips}
+
+            # TODO: play audio
+            bluetooth.Control.set_discoverable(False)
+            logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") + " Started bluetooth listening")
             return
         else:
-            # TODO: Activate Bluetooth and play on local pi
+            # Playing audio locally
+            bluetooth.Control.set_discoverable(False)
+            logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+                "%H:%M:%S") + " Started bluetooth listening")
             return
 
     def delete(self):
@@ -174,6 +182,10 @@ class Playback(Resource):
 
             if len(not_listening) != 0:
                 return {'code': status_codes.client_not_listening, 'message': str(not_listening).replace("'", "") + " is currently not listening"}
+
+            bluetooth.Control.set_discoverable(True)
+            logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+                "%H:%M:%S") + " Stopped bluetooth listening")
             return
 
 
