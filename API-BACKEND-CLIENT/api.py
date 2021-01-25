@@ -147,15 +147,25 @@ class Playback(Resource):
                 return {'error': {'code': status_codes.server_error_at_client, 'message': 'Internal Server Error at IPs'}, 'dead_ips': ips}
 
             # TODO: play audio
-            bluetooth.Control.set_discoverable(False)
-            logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") + " Started bluetooth listening")
-            return
+            ret = bluetooth.set_discoverable(False, data['displayname'])
+            if ret is not None:
+                logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+                    "%H:%M:%S") + "Error starting Bluetooth")
+                return ret, 500
+            else:
+                logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") + " Started bluetooth listening")
+                return
         else:
             # Playing audio locally
-            bluetooth.Control.set_discoverable(False)
-            logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-                "%H:%M:%S") + " Started bluetooth listening")
-            return
+            ret = bluetooth.set_discoverable(False, data['displayname'])
+            if ret is not None:
+                logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+                    "%H:%M:%S") + "Error starting Bluetooth")
+                return ret, 500
+            else:
+                logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+                    "%H:%M:%S") + " Started bluetooth listening")
+                return
 
     def delete(self):
         # TODO: deactivate Bluetooth & send DELETE to Client-Client\listen
@@ -183,7 +193,7 @@ class Playback(Resource):
             if len(not_listening) != 0:
                 return {'code': status_codes.client_not_listening, 'message': str(not_listening).replace("'", "") + " is currently not listening"}
 
-            bluetooth.Control.set_discoverable(True)
+            bluetooth.set_discoverable(True, "")
             logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
                 "%H:%M:%S") + " Stopped bluetooth listening")
             return
