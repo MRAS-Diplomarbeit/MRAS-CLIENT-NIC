@@ -3,6 +3,7 @@
 from flask import Flask, request
 from flask_restful import Api, Resource
 from datetime import datetime, date
+from logging.handlers import RotatingFileHandler
 
 import req
 import sys
@@ -19,16 +20,25 @@ api = Api(app)
 conf_client_backend = load_config.ClientBackend("../.env.yml")
 conf_client_client = load_config.ClientClient("../.env.yml")
 conf_logfile = load_config.Client("../.env.yml")
+logger = None
+
+def create_log(path, size, back_up_count, level):
+    global logger
+    logger = logging.getLogger()
+    logger.setLevel(level),
+    handler = RotatingFileHandler(path, maxBytes=size, backupCount=back_up_count)
+    handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s'))
+    logger.addHandler(handler)
 
 
-def errHandling(error, api):
+def err_handling(error, api):
     if type(error) is TypeError:
         print("Please provide all required fields for: " + api + " in the .env.yml")
-        logging.error(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+        logger.error(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
             "%H:%M:%S") + " Please provide all required fields for: " + api + " in the .env.yml")
     elif type(error) is KeyError:
         print("Please provide all required fields for: " + api + " in the .env.yml")
-        logging.error(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+        logger.error(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
             "%H:%M:%S") + " Please provide all required fields for: " + api + " in the .env.yml")
     else:
         print("Error loading config file. Please provide .env.yml in the project root folder.")
@@ -38,23 +48,27 @@ def errHandling(error, api):
         elif platform.system() == 'Windows':
             print("The root folder is: " + dir[0:dir.rfind("\\") + 1])
         print(error)
-    logging.error("Shutting down due to errors at config file")
+    logger.error("Shutting down due to errors at config file")
     sys.exit(-1)
 
 
 if conf_logfile.error is not None or conf_client_backend.error is not None or conf_client_client.error is not None:
     if conf_logfile.error is not None:
-        logging.basicConfig(filename="../log.txt", level=logging.DEBUG)
-        logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-            "%H:%M:%S") + " Please provide a location for the log file")
+        create_log("../log.txt", 2048000, 5, logging.INFO)
+        # logging.basicConfig(filename="../log.txt", level=logging.DEBUG)
+        # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+        #     "%H:%M:%S") + " Please provide a location for the log file")
+        logger.info("Please provide a location for the log file")
     else:
-        logging.basicConfig(filename=conf_logfile.logpath, level=logging.DEBUG)
+        # logging.basicConfig(filename=conf_logfile.logpath, level=logging.DEBUG)
+        create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
     if conf_client_backend.error is not None:
-        errHandling(conf_client_backend.error, "client-backend")
+        err_handling(conf_client_backend.error, "client-backend")
     elif conf_client_client.error is not None:
-        errHandling(conf_client_client.error, "client-cleint")
+        err_handling(conf_client_client.error, "client-cleint")
 else:
-    logging.basicConfig(filename=conf_logfile.logpath, level=logging.DEBUG)
+    # logging.basicConfig(filename=conf_logfile.logpath, level=logging.DEBUG)
+    create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
 
 
 class Playback(Resource):
@@ -111,15 +125,17 @@ class Playback(Resource):
             # TODO: send error as response to backend
             # TODO: activate Bluetooth, trx multicast server and send GET to Client-Client\listen with multicast_ip
             urls = []
-            logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") +
-                         " Starting listening session on: " + multicast + " with the interface: " + data[
-                             'method'] + " on the devices:")
+            # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") +
+            #              " Starting listening session on: " + multicast + " with the interface: " + data[
+            #                  'method'] + " on the devices:")
+            logger.info("Starting listening session on: " + multicast + " with the interface: " + data['method'] + " on the devices:")
             # Create parameter for get requests (Client-Client)
             getdata = "multicast_ip=" + multicast + "&method=" + data['method']
             for num, ip in enumerate(data['device_ips']):
                 urls.append(conf_client_client.protocol + "://" + ip + ":" + str(
                     conf_client_client.port) + conf_client_client.path + "?" + getdata)
-                logging.info("\t" + urls[num])
+                # logging.info("\t" + urls[num])
+                logger.info("\t" + urls[num])
 
             # send requests
             resp = req.greq_post(urls)
@@ -149,22 +165,26 @@ class Playback(Resource):
             # TODO: play audio
             ret = bluetooth.set_discoverable(False, data['displayname'])
             if ret is not None:
-                logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-                    "%H:%M:%S") + "Error starting Bluetooth")
+                # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+                #     "%H:%M:%S") + "Error starting Bluetooth")
+                logger.error("Error starting Bluetooth")
                 return ret, 500
             else:
-                logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") + " Started bluetooth listening")
+                # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") + " Started bluetooth listening")
+                logger.info("Started bluetooth listening")
                 return
         else:
             # Playing audio locally
             ret = bluetooth.set_discoverable(False, data['displayname'])
             if ret is not None:
-                logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-                    "%H:%M:%S") + "Error starting Bluetooth")
+                # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+                #     "%H:%M:%S") + "Error starting Bluetooth")
+                logger.error("Error starting Bluetooth")
                 return ret, 500
             else:
-                logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-                    "%H:%M:%S") + " Started bluetooth listening")
+                # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+                #     "%H:%M:%S") + " Started bluetooth listening")
+                logger.info("Started bluetooth listening")
                 return
 
     def delete(self):
@@ -194,8 +214,9 @@ class Playback(Resource):
                 return {'code': status_codes.client_not_listening, 'message': str(not_listening).replace("'", "") + " is currently not listening"}
 
             bluetooth.set_discoverable(True, "")
-            logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-                "%H:%M:%S") + " Stopped bluetooth listening")
+            # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
+            #     "%H:%M:%S") + " Stopped bluetooth listening")
+            logger.info("Stopped bluetooth listening")
             return
 
 
