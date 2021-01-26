@@ -5,6 +5,7 @@ from flask_restful import Api, Resource
 from datetime import datetime, date
 from logging.handlers import RotatingFileHandler
 
+import zlib
 import req
 import sys
 import load_config
@@ -22,11 +23,27 @@ conf_client_client = load_config.ClientClient("../.env.yml")
 conf_logfile = load_config.Client("../.env.yml")
 logger = None
 
+def namer(name):
+    return name + ".gz"
+
+
+def rotator(source, dest):
+    print(f'compressing {source} -> {dest}')
+    with open(source, "rb") as sf:
+        data = sf.read()
+        compressed = zlib.compress(data, 9)
+        with open(dest, "wb") as df:
+            df.write(compressed)
+    os.remove(source)
+
+
 def create_log(path, size, back_up_count, level):
     global logger
     logger = logging.getLogger()
     logger.setLevel(level),
     handler = RotatingFileHandler(path, maxBytes=size, backupCount=back_up_count)
+    handler.rotator = rotator
+    handler.namer = namer
     handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s'))
     logger.addHandler(handler)
 
