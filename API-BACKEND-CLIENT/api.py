@@ -22,31 +22,6 @@ conf_client_client = load_config.ClientClient("../.env.yml")
 conf_logfile = load_config.Client("../.env.yml")
 logger = None
 
-# def namer(name):
-#     return name + ".gz"
-#
-#
-# def rotator(source, dest):
-#     print(f'compressing {source} -> {dest}')
-#     with open(source, "rb") as sf:
-#         data = sf.read()
-#         compressed = zlib.compress(data, 9)
-#         with open(dest, "wb") as df:
-#             df.write(compressed)
-#     os.remove(source)
-#
-#
-# def create_log(path, size, back_up_count, level):
-#     global logger
-#     logger = logging.getLogger()
-#     logger.setLevel(level),
-#     handler = RotatingFileHandler(path, maxBytes=size, backupCount=back_up_count)
-#     handler.rotator = rotator
-#     handler.namer = namer
-#     handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s'))
-#     logger.addHandler(handler)
-
-
 def err_handling(error, api):
     if type(error) is TypeError:
         print("Please provide all required fields for: " + api + " in the .env.yml")
@@ -70,23 +45,15 @@ def err_handling(error, api):
 
 if conf_logfile.error is not None or conf_client_backend.error is not None or conf_client_client.error is not None:
     if conf_logfile.error is not None:
-        # create_log("../log.txt", 2048000, 5, logging.INFO)
-        # logging.basicConfig(filename="../log.txt", level=logging.DEBUG)
-        # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-        #     "%H:%M:%S") + " Please provide a location for the log file")
         logger = rotating_logger.create_log("../log.txt", 2048000, 5, logging.INFO)
         logger.info("Please provide a location for the log file")
     else:
-        # logging.basicConfig(filename=conf_logfile.logpath, level=logging.DEBUG)
-        # create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
         logger = rotating_logger.create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
     if conf_client_backend.error is not None:
         err_handling(conf_client_backend.error, "client-backend")
     elif conf_client_client.error is not None:
         err_handling(conf_client_client.error, "client-cleint")
 else:
-    # logging.basicConfig(filename=conf_logfile.logpath, level=logging.DEBUG)
-    # create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
     logger = rotating_logger.create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
 
 
@@ -153,7 +120,6 @@ class Playback(Resource):
             for num, ip in enumerate(data['device_ips']):
                 urls.append(conf_client_client.protocol + "://" + ip + ":" + str(
                     conf_client_client.port) + conf_client_client.path + "?" + getdata)
-                # logging.info("\t" + urls[num])
                 logger.info("\t" + urls[num])
 
             # send requests
@@ -184,25 +150,18 @@ class Playback(Resource):
             # TODO: play audio
             ret = bluetooth.set_discoverable(False, data['displayname'])
             if ret is not None:
-                # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-                #     "%H:%M:%S") + "Error starting Bluetooth")
                 logger.error("Error starting Bluetooth")
                 return ret, 500
             else:
-                # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") + " Started bluetooth listening")
                 logger.info("Started bluetooth listening")
                 return
         else:
             # Playing audio locally
             ret = bluetooth.set_discoverable(False, data['displayname'])
             if ret is not None:
-                # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-                #     "%H:%M:%S") + "Error starting Bluetooth")
                 logger.error("Error starting Bluetooth")
                 return ret, 500
             else:
-                # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-                #     "%H:%M:%S") + " Started bluetooth listening")
                 logger.info("Started bluetooth listening")
                 return
 
@@ -233,8 +192,6 @@ class Playback(Resource):
                 return {'code': status_codes.client_not_listening, 'message': str(not_listening).replace("'", "") + " is currently not listening"}
 
             bluetooth.set_discoverable(True, "")
-            # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-            #     "%H:%M:%S") + " Stopped bluetooth listening")
             logger.info("Stopped bluetooth listening")
             return
 
