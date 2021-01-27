@@ -3,9 +3,7 @@
 from flask import Flask, request
 from flask_restful import Api, Resource
 from datetime import datetime, date
-from logging.handlers import RotatingFileHandler
 
-import zlib
 import req
 import sys
 import load_config
@@ -14,6 +12,7 @@ import platform
 import logging
 import status_codes
 import bluetooth
+import rotating_logger
 
 app = Flask(__name__)
 api = Api(app)
@@ -23,29 +22,29 @@ conf_client_client = load_config.ClientClient("../.env.yml")
 conf_logfile = load_config.Client("../.env.yml")
 logger = None
 
-def namer(name):
-    return name + ".gz"
-
-
-def rotator(source, dest):
-    print(f'compressing {source} -> {dest}')
-    with open(source, "rb") as sf:
-        data = sf.read()
-        compressed = zlib.compress(data, 9)
-        with open(dest, "wb") as df:
-            df.write(compressed)
-    os.remove(source)
-
-
-def create_log(path, size, back_up_count, level):
-    global logger
-    logger = logging.getLogger()
-    logger.setLevel(level),
-    handler = RotatingFileHandler(path, maxBytes=size, backupCount=back_up_count)
-    handler.rotator = rotator
-    handler.namer = namer
-    handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s'))
-    logger.addHandler(handler)
+# def namer(name):
+#     return name + ".gz"
+#
+#
+# def rotator(source, dest):
+#     print(f'compressing {source} -> {dest}')
+#     with open(source, "rb") as sf:
+#         data = sf.read()
+#         compressed = zlib.compress(data, 9)
+#         with open(dest, "wb") as df:
+#             df.write(compressed)
+#     os.remove(source)
+#
+#
+# def create_log(path, size, back_up_count, level):
+#     global logger
+#     logger = logging.getLogger()
+#     logger.setLevel(level),
+#     handler = RotatingFileHandler(path, maxBytes=size, backupCount=back_up_count)
+#     handler.rotator = rotator
+#     handler.namer = namer
+#     handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s'))
+#     logger.addHandler(handler)
 
 
 def err_handling(error, api):
@@ -71,21 +70,24 @@ def err_handling(error, api):
 
 if conf_logfile.error is not None or conf_client_backend.error is not None or conf_client_client.error is not None:
     if conf_logfile.error is not None:
-        create_log("../log.txt", 2048000, 5, logging.INFO)
+        # create_log("../log.txt", 2048000, 5, logging.INFO)
         # logging.basicConfig(filename="../log.txt", level=logging.DEBUG)
         # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
         #     "%H:%M:%S") + " Please provide a location for the log file")
+        logger = rotating_logger.create_log("../log.txt", 2048000, 5, logging.INFO)
         logger.info("Please provide a location for the log file")
     else:
         # logging.basicConfig(filename=conf_logfile.logpath, level=logging.DEBUG)
-        create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
+        # create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
+        logger = rotating_logger.create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
     if conf_client_backend.error is not None:
         err_handling(conf_client_backend.error, "client-backend")
     elif conf_client_client.error is not None:
         err_handling(conf_client_client.error, "client-cleint")
 else:
     # logging.basicConfig(filename=conf_logfile.logpath, level=logging.DEBUG)
-    create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
+    # create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
+    logger = rotating_logger.create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
 
 
 class Playback(Resource):
