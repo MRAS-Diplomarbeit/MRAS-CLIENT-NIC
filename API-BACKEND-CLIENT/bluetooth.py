@@ -4,14 +4,6 @@ import status_codes
 
 def set_discoverable(isDiscoverable, display_name):
     if not isDiscoverable:
-        # stream = os.popen('rfkill -J')
-        # interfaces = json.load(stream)['']
-        # for interface in interfaces:
-        #     print(interface)
-        #     if interface['type'] == 'bluetooth' and interface['soft'] == 'blocked':
-        #         os.system('rfkill unblock '+str(interface['id']))
-        # print(interfaces)
-        # time.sleep(2)
         is_powered = __is_powered()
         if type(is_powered) == dict:
             return is_powered
@@ -37,11 +29,6 @@ def set_discoverable(isDiscoverable, display_name):
             os.system('bluetoothctl system-alias \"'+display_name+"\"")
 
     elif isDiscoverable:
-        # stream = os.popen('rfkill -J')
-        # interfaces = json.load(stream)['']
-        # for interface in interfaces:
-        #     if interface['type'] == 'bluetooth' and interface['soft'] == 'unblocked':
-        #         os.system('rfkill block ' + str(interface['id']))
         is_powered = __is_powered()
         if type(is_powered) == dict:
             return is_powered
