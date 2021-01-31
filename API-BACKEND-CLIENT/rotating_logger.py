@@ -2,7 +2,6 @@ from logging.handlers import RotatingFileHandler
 
 import logging
 import os
-import zlib
 import gzip
 import sys
 
@@ -11,13 +10,6 @@ def namer(name):
 
 
 def rotator(source, dest):
-    # print(f'compressing {source} -> {dest}')
-    # with open(source, "rb") as sf:
-    #     data = sf.read()
-    #     compressed = zlib.compress(data, 9)
-    #     with open(dest, "wb") as df:
-    #         df.write(compressed)
-    # os.remove(source)
     try:
         old_log = open(source, 'rb')
         s = old_log.read()

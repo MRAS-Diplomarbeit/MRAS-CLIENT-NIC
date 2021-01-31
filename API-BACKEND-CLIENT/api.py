@@ -111,9 +111,6 @@ class Playback(Resource):
             # TODO: send error as response to backend
             # TODO: activate Bluetooth, trx multicast server and send GET to Client-Client\listen with multicast_ip
             urls = []
-            # logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") +
-            #              " Starting listening session on: " + multicast + " with the interface: " + data[
-            #                  'method'] + " on the devices:")
             logger.info("Starting listening session on: " + multicast + " with the interface: " + data['method'] + " on the devices:")
             # Create parameter for get requests (Client-Client)
             getdata = "multicast_ip=" + multicast + "&method=" + data['method']
