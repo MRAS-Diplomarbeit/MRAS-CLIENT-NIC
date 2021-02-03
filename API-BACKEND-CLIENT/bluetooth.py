@@ -2,8 +2,8 @@ import os
 import status_codes
 
 
-def set_discoverable(isDiscoverable, display_name):
-    if not isDiscoverable:
+def set_discoverable(is_discoverable, display_name):
+    if not is_discoverable:
         is_powered = __is_powered()
         if type(is_powered) == dict:
             return is_powered
@@ -28,7 +28,7 @@ def set_discoverable(isDiscoverable, display_name):
         elif alias != display_name:
             os.system('bluetoothctl system-alias \"'+display_name+"\"")
 
-    elif isDiscoverable:
+    elif is_discoverable:
         is_powered = __is_powered()
         if type(is_powered) == dict:
             return is_powered

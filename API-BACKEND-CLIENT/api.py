@@ -13,13 +13,14 @@ import logging
 import status_codes
 import bluetooth
 import rotating_logger
+import constants
 
 app = Flask(__name__)
 api = Api(app)
 
-conf_client_backend = load_config.ClientBackend("../.env.yml")
-conf_client_client = load_config.ClientClient("../.env.yml")
-conf_logfile = load_config.Client("../.env.yml")
+conf_client_backend = load_config.ClientBackend(constants.confLoc)
+conf_client_client = load_config.ClientClient(constants.confLoc)
+conf_logfile = load_config.Client(constants.confLoc)
 logger = None
 
 def err_handling(error, api):
@@ -33,11 +34,11 @@ def err_handling(error, api):
             "%H:%M:%S") + " Please provide all required fields for: " + api + " in the .env.yml")
     else:
         print("Error loading config file. Please provide .env.yml in the project root folder.")
-        dir = os.getcwd()
+        current_dir = os.getcwd()
         if platform.system() == 'Linux':
-            print("The root folder is: " + dir[0:dir.rfind("/") + 1])
+            print("The root folder is: " + current_dir[0:current_dir.rfind("/") + 1])
         elif platform.system() == 'Windows':
-            print("The root folder is: " + dir[0:dir.rfind("\\") + 1])
+            print("The root folder is: " + current_dir[0:current_dir.rfind("\\") + 1])
         print(error)
     logger.error("Shutting down due to errors at config file")
     sys.exit(-1)
