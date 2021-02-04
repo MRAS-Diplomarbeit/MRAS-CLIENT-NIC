@@ -165,12 +165,11 @@ class Playback(Resource):
         if params_present['code'] != status_codes.ok:
             if params_present['code'] == status_codes.bad_request:
                 return {'code': status_codes.single_param_missing, "message": "Please provide all necessary data " + str(params_present['missing']).replace("'", "")}, status_codes.bad_request
-        else:
+        elif len(data['ips'])>0:
             urls = []
             for num, ip in enumerate(data['ips']):
                 urls.append(conf_client_client.protocol+"://"+ip+":"+str(conf_client_client.port) + conf_client_client.path)
             resp = req.greq_delete(urls)
-            print(resp)
             dead_ip = []
             not_listening = []
             for num, response in enumerate(resp):
@@ -184,9 +183,9 @@ class Playback(Resource):
             if len(not_listening) != 0:
                 return {'code': status_codes.client_not_listening, 'message': str(not_listening).replace("'", "") + " is currently not listening"}
 
-            bluetooth.set_discoverable(True, "")
-            logger.info("Stopped bluetooth listening")
-            return
+        bluetooth.set_discoverable(True, "")
+        logger.info("Stopped bluetooth listening")
+        return
 
 
 api.add_resource(Playback, conf_client_backend.path)
