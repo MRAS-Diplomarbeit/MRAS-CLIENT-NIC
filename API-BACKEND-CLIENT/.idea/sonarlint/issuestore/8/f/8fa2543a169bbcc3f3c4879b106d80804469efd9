@@ -1,0 +1,15 @@
+
+upython:S1192"XDefine a constant instead of duplicating this literal 'Client not started at: ' 4 times.(ºò–≠˝ˇˇˇˇ
+hpython:S1192"PDefine a constant instead of duplicating this literal " is unavailable" 4 times.(ŒÏÔó
+gpython:S117"PRename this parameter "DATA" to match the regular expression ^[_a-z][a-z0-9_]*$.(¨¡€®
+epython:S117"NRename this parameter "IP" to match the regular expression ^[_a-z][a-z0-9_]*$.(¨¡€®
+gpython:S117"PRename this parameter "PATH" to match the regular expression ^[_a-z][a-z0-9_]*$.(¨¡€®
+gpython:S117"PRename this parameter "PROT" to match the regular expression ^[_a-z][a-z0-9_]*$.(¨¡€®
+gpython:S117"PRename this parameter "DATA" to match the regular expression ^[_a-z][a-z0-9_]*$.(˚»ø›
+epython:S117"NRename this parameter "IP" to match the regular expression ^[_a-z][a-z0-9_]*$.(˚»ø›
+gpython:S117"PRename this parameter "PATH" to match the regular expression ^[_a-z][a-z0-9_]*$.(˚»ø›
+gpython:S117"PRename this parameter "PROT" to match the regular expression ^[_a-z][a-z0-9_]*$.(˚»ø›
+gpython:S1176"PRename this parameter "DATA" to match the regular expression ^[_a-z][a-z0-9_]*$.(·Î ô
+epython:S1176"NRename this parameter "IP" to match the regular expression ^[_a-z][a-z0-9_]*$.(·Î ô
+gpython:S1176"PRename this parameter "PATH" to match the regular expression ^[_a-z][a-z0-9_]*$.(·Î ô
+gpython:S1176"PRename this parameter "PROT" to match the regular expression ^[_a-z][a-z0-9_]*$.(·Î ô

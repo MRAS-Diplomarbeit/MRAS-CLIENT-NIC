@@ -24,15 +24,10 @@ conf_logfile = load_config.Client(constants.confLoc)
 logger = None
 
 def err_handling(error, api):
-    if type(error) is TypeError:
+    if type(error) is TypeError or type(error) is KeyError:
         print("Please provide all required fields for: " + api + " in the .env.yml")
         logger.error(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
             "%H:%M:%S") + " Please provide all required fields for: " + api + " in the .env.yml")
-    elif type(error) is KeyError:
-        print("Please provide all required fields for: " + api + " in the .env.yml")
-        logger.error(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-            "%H:%M:%S") + " Please provide all required fields for: " + api + " in the .env.yml")
-    else:
         print("Error loading config file. Please provide .env.yml in the project root folder.")
         current_dir = os.getcwd()
         if platform.system() == 'Linux':
