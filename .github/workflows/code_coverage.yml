@@ -20,3 +20,23 @@ jobs:
       run: |
         export PYTHONPATH=API-BACKEND-CLIENT/api
         pytest --cov=API-BACKEND-CLIENT/api --cov-report=xml
+    - name: Copy to code coverage folder and push to repo
+      run: |
+        if test -f coverage-reports/coverage.xml; then
+          if cmp -s coverage.xml coverage-reports/coverage.xml; then
+            mv coverage.xml coverage-reports/
+            git config --global user.name "Nicolas"
+            git config --global user.email "nicolas@schuessling.com"
+            git add coverage-reports/coverage.xml -f
+            git commit -m "Automatically added code coverage"
+            git push
+          fi
+        else
+          mkdir coverage-reports
+          mv coverage.xml coverage-reports/
+            git config --global user.name "Nicolas"
+            git config --global user.email "nicolas@schuessling.com"
+            git add coverage-reports/coverage.xml -f
+            git commit -m "Automatically added code coverage"
+            git push
+        fi
