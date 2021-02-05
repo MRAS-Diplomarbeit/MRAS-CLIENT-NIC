@@ -1,1 +1,1 @@
-confLoc = "../.env.yml"
+confLoc = "../../.env.yml"
