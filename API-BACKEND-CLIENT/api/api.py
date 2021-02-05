@@ -36,13 +36,14 @@ def err_handling(error, api):
         elif platform.system() == 'Windows':
             print("The root folder is: " + current_dir[0:current_dir.rfind("\\") + 1])
         print(error)
+    print(error)
     logger.error("Shutting down due to errors at config file")
     sys.exit(-1)
 
 
 if conf_logfile.error is not None or conf_client_backend.error is not None or conf_client_client.error is not None:
     if conf_logfile.error is not None:
-        logger = rotating_logger.create_log("../../log.txt", 2048000, 5, logging.INFO)
+        logger = rotating_logger.create_log("./log.txt", 2048000, 5, logging.INFO)
         logger.info("Please provide a location for the log file")
     else:
         logger = rotating_logger.create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
@@ -209,4 +210,4 @@ if __name__ == '__main__':
     from gevent import monkey
 
     monkey.patch_all()
-    app.run(host="0.0.0.0", port=conf_client_backend.port, debug=False, threaded=True)
+    app.run(host="0.0.0.0", port=conf_client_backend.port, debug=True, threaded=True)
