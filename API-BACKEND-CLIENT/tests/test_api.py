@@ -5,6 +5,7 @@ import sys
 if not os.getcwd()+"/api/" in sys.path:
     sys.path.append(os.getcwd()+"/api/")
 from api import app
+from unittest.mock import patch
 
 class MyTestCase(unittest.TestCase):
     def setUp(self):
@@ -22,8 +23,10 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(response.json['message'], "Please provide all necessary data [ips]")
 
     def test_stop_with_no_ips(self):
-        response = self.app.delete('/api/v1/playback', json = {'ips':[ ]})
-        self.assertEqual(response.status_code, 200)
+        with patch('api.bluetooth.set_discoverable') as mocked:
+            mocked.return_value = True
+            response = self.app.delete('/api/v1/playback', json = {'ips':[ ]})
+            self.assertEqual(response.status_code, 200)
 
 
 if __name__ == '__main__':

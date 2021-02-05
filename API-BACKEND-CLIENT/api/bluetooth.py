@@ -34,7 +34,7 @@ def set_discoverable(is_discoverable, display_name):
             return is_powered
         elif is_powered:
             os.system('bluetoothctl power off')
-    return
+    return True
 
 
 def __get_info():
