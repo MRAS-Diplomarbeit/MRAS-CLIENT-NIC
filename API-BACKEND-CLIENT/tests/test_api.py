@@ -1,8 +1,9 @@
 import unittest
+import os
 import sys
 #testing from different folder
-if not "/home/pi/API-BACKEND-CLIENT/" in sys.path:
-    sys.path.append("/home/pi/API-BACKEND-CLIENT/api/")
+if not os.getcwd()+"/api/" in sys.path:
+    sys.path.append(os.getcwd()+"/api/")
 from api import app
 
 class MyTestCase(unittest.TestCase):

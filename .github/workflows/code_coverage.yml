@@ -14,7 +14,7 @@ jobs:
         python-version: 3.9
     - name: Generating Report
       run: |
-        pip install flask, flask_restful, datetime, gzip, pyyaml, requests, aiohttp, grequests, pytest, coverage, pytest-cov
+        pip install flask flask_restful datetime gzip pyyaml requests aiohttp grequests pytest coverage pytest-cov
         pytest --cov=api --cov-report=xml
         mkdir coverage-report
         cp coverage.xml coverage-report/
