@@ -1,5 +1,5 @@
 import os
-import status_codes
+from api import status_codes
 
 
 def set_discoverable(is_discoverable, display_name):

@@ -10,10 +10,11 @@ import load_config
 import os
 import platform
 import logging
+#from const import status_codes, constants
+import constants
 import status_codes
 import bluetooth
 import rotating_logger
-import constants
 
 app = Flask(__name__)
 api = Api(app)
@@ -41,7 +42,7 @@ def err_handling(error, api):
 
 if conf_logfile.error is not None or conf_client_backend.error is not None or conf_client_client.error is not None:
     if conf_logfile.error is not None:
-        logger = rotating_logger.create_log("../log.txt", 2048000, 5, logging.INFO)
+        logger = rotating_logger.create_log("../../log.txt", 2048000, 5, logging.INFO)
         logger.info("Please provide a location for the log file")
     else:
         logger = rotating_logger.create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
@@ -126,7 +127,7 @@ class Playback(Resource):
                 elif response.status_code != status_codes.ok:
                     err_list.append({'code': response.status_code, 'message': 'Server probably not running'})
                     dead_ips.append(data['device_ips'][num])
-                # TODO: ADD test for status_code 400
+                # TODO: ADD tests for status_code 400
 
             print(dead_ips)
             print(err_list)
