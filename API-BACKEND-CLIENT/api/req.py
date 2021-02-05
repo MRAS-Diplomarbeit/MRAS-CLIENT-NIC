@@ -1,7 +1,6 @@
 from aiohttp import ClientSession
 import requests
 import grequests
-import asyncio
 
 
 def req_listen_get(PROT, IP, PATH, DATA):

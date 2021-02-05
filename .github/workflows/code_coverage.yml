@@ -1,0 +1,22 @@
+name: Code coverage backend-client
+on: push
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      OS: ubuntu-latest
+      PYTHON: '3.9'
+    steps:
+    - uses: checkout@v2
+      with:
+        fetch-depth: '2'
+    - name: Setup Python
+      uses: actions/setup-python@master
+      with:
+        python-version: 3.9
+    - name: Generating Report
+      run: |
+        pip install flask, flask_restful, datetime, gzip, pyyaml, requests, aiohttp, grequests, pytest, coverage, pytest-cov
+        pytest --cov=api --cov-report=xml
+        mkdir coverage-report
+        cp coverage.xml coverage-report/
