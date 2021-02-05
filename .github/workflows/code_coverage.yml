@@ -18,4 +18,5 @@ jobs:
         pip install -r requirements.txt
     - name: Run Tests
       run: |
+        export PYTHONPATH=API-BACKEND-CLIENT/api
         pytest --cov=API-BACKEND-CLIENT/api --cov-report=xml
