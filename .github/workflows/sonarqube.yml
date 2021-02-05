@@ -3,7 +3,11 @@
 name: Sonarqube code inspection
 
 # Controls when the action will run. 
-on: push
+on: 
+  workflow_run:
+    workflows: ["Code coverage backend-client"]
+    types:
+      - completed
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   sonarQubeTrigger:
