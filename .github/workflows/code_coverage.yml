@@ -20,6 +20,10 @@ jobs:
       run: |
         export PYTHONPATH=API-BACKEND-CLIENT/api
         pytest --cov=API-BACKEND-CLIENT/api --cov-report=xml
+    - name: Change dir path for sonarqube
+      run: | 
+        sed -i "s|/home/runner/work/|/github/workspace/|g" coverage.xml
+        echo $(less coverage.xml | grep /github/workspace/)
     - name: Copy to code coverage folder
       run: |
         mkdir coverage-reports
