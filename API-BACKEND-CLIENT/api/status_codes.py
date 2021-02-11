@@ -8,3 +8,4 @@ server_error_at_client = 1100
 client_not_found = 1101
 client_not_listening = 1102
 bluetooth_error = 1103
+pulse_error = 1104

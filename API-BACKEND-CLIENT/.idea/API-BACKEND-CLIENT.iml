@@ -10,6 +10,9 @@
     <orderEntry type="jdk" jdkName="Remote Python 3.7.3 (sftp://pi@192.168.1.249:22/usr/bin/python3)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
+  <component name="SonarLintModuleSettings">
+    <option name="sqPathPrefix" value="API-BACKEND-CLIENT" />
+  </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
     <option name="TEMPLATE_FOLDERS">

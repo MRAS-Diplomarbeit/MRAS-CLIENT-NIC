@@ -6,13 +6,13 @@ fi
 
 mkdir MRAS
 cd MRAS
-apt-get update
-apt-get install git libasound2-dev libopus-dev libortp-dev libasound2-doc build-essentials python3-pip python3-venv alsa-base alsa-utils -y
-git clone http://www.pogo.org.uk/~mark/trx.git
-cd trx
-make
-make install
-cd ..
+apt-get install git python3-pip python3-venv pulseaudio pulseaudio-utils -y
+
+
+# Bluetooth set rights
+sudo usermod -a -G bluetooth pi
+
+
 python3 -m pip install --user virtualenv
 python3 -m venv venv
 source venv/bin/activate

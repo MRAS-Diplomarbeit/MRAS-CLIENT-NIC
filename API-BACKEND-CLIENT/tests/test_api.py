@@ -23,8 +23,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(response.json['message'], "Please provide all necessary data [ips]")
 
     def test_stop_with_no_ips(self):
-        with patch('api.bluetooth.set_discoverable') as mocked:
-            mocked.return_value = True
+        with patch('api.bluetooth.set_discoverable', return_value = True) as mocked:
             response = self.app.delete('/api/v1/playback', json = {'ips':[ ]})
             self.assertEqual(response.status_code, 200)
 
