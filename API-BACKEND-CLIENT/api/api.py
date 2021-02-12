@@ -1,5 +1,3 @@
-# from gevent import monkey as curious_george
-# curious_george.patch_all(thread=False, select=False)
 from flask import Flask, request
 from flask_restful import Api, Resource
 from datetime import datetime, date
@@ -10,7 +8,6 @@ import load_config
 import os
 import platform
 import logging
-#from const import status_codes, constants
 import constants
 import status_codes
 import bluetooth
@@ -71,17 +68,6 @@ class Playback(Resource):
                     return {'code': status_codes.multiple_param_missing,
                             "message": "Please provide all necessary data " + str(params_present['missing']).replace(
                                 "'", "")}, status_codes.bad_request
-
-        # if data is None:
-        #     logging.info(date.today().strftime("%d/%m/%Y") + "-" +
-        #                  datetime.now().strftime(
-        #                      "%H:%M:%S") + str(status_codes.bad_request) + " - Server did not supply data.")
-        #     return {"error": "No data supplied"}, status_codes.bad_request
-        #
-        # elif "method" not in data or "displayname" not in data or "device_ips" not in data:
-        #     logging.info(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime("%H:%M:%S") +
-        #                  str(status_codes.bad_request) + " - Server did not supply all necessary data.")
-        #     return {"error": "Body must contain method, displayname, device_ips"}, status_codes.bad_request
 
         elif len(data['device_ips']) != 0:
             print(data["device_ips"])
