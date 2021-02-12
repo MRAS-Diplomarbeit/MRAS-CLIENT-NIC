@@ -1,9 +1,10 @@
+from typing import overload
 import os
 import status_codes
 
 
 # returns a dict of all the sinks with the sink number (Sink #0...) as an key
-def get_sinks():
+def get_sinks() -> dict:
     lines = os.popen('pactl list sinks').readlines()
     sinks = {}
     tmp_sink = {}
@@ -32,7 +33,7 @@ def get_sinks():
 
 
 # returns one sink as an dict
-def get_sink(name):
+def get_sink(name: str) -> dict:
     sinks = get_sinks()
     # find the position of the name in the generated names array and return the matching part of the dict
     for sink in sinks.values():
@@ -43,7 +44,7 @@ def get_sink(name):
 
 
 # returns an list of names from the sinks
-def get_sink_names():
+def get_sink_names() -> [str]:
     sinks = get_sinks()
     names = []
     for sink in sinks:
@@ -52,7 +53,7 @@ def get_sink_names():
 
 
 # adds a sink with a specified name
-def add_sink(name):
+def add_sink(name: str):
     os.system('pactl load-module module-null-sink sink_name=' + name)
     # returns true if sink was added successfully
     if sink_exists(name):
@@ -63,7 +64,7 @@ def add_sink(name):
 
 # uses get_sink and looks for an dict with an key code for errors,
 # returns True if the sink exists
-def sink_exists(name):
+def sink_exists(name) -> bool:
     if 'code' in get_sink(name):
         return False
     return True
@@ -71,12 +72,24 @@ def sink_exists(name):
 
 # delete sink and test if sink got deleted,
 # returns true if the sink got deleted
-def remove_sink(name):
+def remove_sink(name) -> bool:
     sink_id = get_sink(name)['Owner Module']
     os.system('pactl unload-module ' + sink_id)
     return not sink_exists(name)
 
 
+@overload
+def send_audio(sink: str, ips: [str]) -> None:
+    for ip in ips:
+        send_audio(sink, ip)
+
+
 # sends the audio from a specified sink to an ip
-def send_audio(sink, ip):
+def send_audio(sink: str, ip: str) -> None:
     os.system('pactl load-module module-rtp-send source=' + sink + '.monitor destination=' + ip)
+
+
+# stops all audio streams by unloading the send module
+def stop_audio_stream() -> None:
+    os.system('pactl unload module-rtp-send')
+
