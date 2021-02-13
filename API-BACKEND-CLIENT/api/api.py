@@ -12,6 +12,8 @@ import constants
 import status_codes
 import bluetooth
 import rotating_logger
+import pulse_control as pulse
+import time
 
 app = Flask(__name__)
 api = Api(app)
@@ -128,23 +130,29 @@ class Playback(Resource):
                     ips.append(e['ip'])
                 return {'error': {'code': status_codes.server_error_at_client, 'message': 'Internal Server Error at IPs'}, 'dead_ips': ips}
 
-            # TODO: play audio
+            # starting the bluetooth interface and looking for errors
             ret = bluetooth.set_discoverable(False, data['displayname'])
-            if ret is not None:
+            if not ret:
                 logger.error("Error starting Bluetooth")
                 return ret, 500
-            else:
-                logger.info("Started bluetooth listening")
-                return
+            logger.info("Started bluetooth listening")
+
+            # get the number of the source from the bluetooth audio and start the audio transmission
+            source_id = pulse.get_source_number(constants.bluetooth_driver)
+            while source_id is None:
+                time.sleep(2)
+                source_id = pulse.get_source_number(constants.bluetooth_driver)
+
+            for ip in data['device_ips']:
+                pulse.send_audio_source(source_id, ip)
         else:
             # Playing audio locally
             ret = bluetooth.set_discoverable(False, data['displayname'])
-            if ret is not None:
+            if not ret:
                 logger.error("Error starting Bluetooth")
                 return ret, 500
             else:
                 logger.info("Started bluetooth listening")
-                return
 
     def delete(self):
         # TODO: deactivate Bluetooth & send DELETE to Client-Client\listen
