@@ -3,6 +3,8 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm,flask,jetbrains,visualstudiocode
 
 .scannerwork/*
+**/.scannerwork/*
+**/.scannerwork/
 
 ### Flask ###
 instance/*

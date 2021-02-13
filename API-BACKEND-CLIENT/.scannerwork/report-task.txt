@@ -1,6 +1,0 @@
-projectKey=Diplo-Api-Backend-Client
-serverUrl=http://sonarqube.at:8081
-serverVersion=8.6.1.40680
-dashboardUrl=http://sonarqube.at:8081/dashboard?id=Diplo-Api-Backend-Client
-ceTaskId=AXdoUTFVxrn-iHZbr6lD
-ceTaskUrl=http://sonarqube.at:8081/api/ce/task?id=AXdoUTFVxrn-iHZbr6lD
