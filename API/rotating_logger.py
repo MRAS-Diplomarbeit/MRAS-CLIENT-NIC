@@ -5,6 +5,7 @@ import os
 import gzip
 import sys
 
+
 def namer(name):
     return name + ".gz"
 
@@ -35,5 +36,6 @@ def create_log(path, size, back_up_count, level):
     return logger
 
 
-def create_log(logger_config):
-    pass
+def create_log_fro_config(logger_config):
+    print(logger_config)
+    return False
