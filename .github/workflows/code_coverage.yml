@@ -16,10 +16,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+    - name: Replace path in yml for creating log file (missing permissions in workflow)
+      run: sed -i "s|/home/pi/|/home/runner/work/MRAS-CLIENT-NIC/|g" .env.yml
     - name: Run Tests
       run: |
-        mkdir /home/pi
-        mkdir /home/pi/logs
         export PYTHONPATH=API
         pytest --cov=API --cov-report=xml
     - name: Change dir path for sonarqube
