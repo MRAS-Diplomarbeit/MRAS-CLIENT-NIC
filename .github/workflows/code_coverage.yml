@@ -18,6 +18,8 @@ jobs:
         pip install -r requirements.txt
     - name: Run Tests
       run: |
+        mkdir /home/pi
+        mkdir /home/pi/logs
         export PYTHONPATH=API
         pytest --cov=API --cov-report=xml
     - name: Change dir path for sonarqube
