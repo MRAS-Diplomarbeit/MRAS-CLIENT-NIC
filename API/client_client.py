@@ -1,6 +1,9 @@
 from flask import Flask, request
 from flask_restful import Api, Resource
 
+import pulse_control as pulse
+import constants as const
+
 app = Flask(__name__)
 api = Api(app)
 
@@ -20,8 +23,9 @@ class Listen(Resource):
             print("error")
             return 400
         # TODO: Listen to multicast ip
+
+        pulse.listen_to_stream(data['multicast_ip'], const.default_latency)
         is_listening = True
-        return
 
     def delete(self):
         # TODO: Stop listening
@@ -29,7 +33,7 @@ class Listen(Resource):
         if not is_listening:
             return {'code': 400, 'message': 'Currently not listening'}, 400
         is_listening = False
-        return
+        pulse.stop_incoming_stream()
 
 
 api.add_resource(Listen, '/api/v1/listen')

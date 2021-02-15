@@ -2,6 +2,7 @@ from typing import overload
 import os
 import status_codes
 
+
 def parse_list(list: [str], type: str) -> dict:
     devices = {}
     tmp_sink = {}
@@ -38,6 +39,11 @@ def get_sinks() -> dict:
 def get_sources() -> dict:
     lines = os.popen('pactl list sources').readlines()
     return parse_list(lines, "Source")
+
+
+def get_modules() -> dict:
+    lines = os.popen('pactl list modules').readlines()
+    return parse_list(lines, "Module")
 
 
 # returns one sink as an dict
@@ -129,11 +135,23 @@ def send_audio_source(source_id: int, ip: str) -> None:
 
 
 # stops all audio streams by unloading the send module
-def stop_audio_stream() -> None:
-    os.system('pactl unload module-rtp-send')
+def stop_outgoing_stream() -> bool:
+    return unload_module('module-rtp-send')
+
+
+def stop_incoming_stream() -> bool:
+    return unload_module('module-rtp-recv')
 
 
 def listen_to_stream(ip: str, latency: int) -> None:
     os.system('pactl load-module module-rtp-recv latency_msec=' + str(latency) + 'sap_address=' + ip)
+
+
+def unload_module(module: str) -> bool:
+    ret = os.popen('pactl unload-module ' + module).readline()
+    if ret is not None:
+        return False
+    else:
+        return True
 
 # TODO: list modules, get module number of sending streams

@@ -155,7 +155,6 @@ class Playback(Resource):
                 logger.info("Started bluetooth listening")
 
     def delete(self):
-        # TODO: deactivate Bluetooth & send DELETE to Client-Client\listen
         data = request.get_json()
         params_present = data_available(data, ['ips'])
         if params_present['code'] != status_codes.ok:
@@ -179,6 +178,7 @@ class Playback(Resource):
             if len(not_listening) != 0:
                 return {'code': status_codes.client_not_listening, 'message': str(not_listening).replace("'", "") + " is currently not listening"}
 
+        pulse.stop_outgoing_stream()
         bluetooth.set_discoverable(True, "")
         logger.info("Stopped bluetooth listening")
         return
