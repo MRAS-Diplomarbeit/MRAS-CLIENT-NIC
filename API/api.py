@@ -23,6 +23,7 @@ conf_client_client = load_config.ClientClient(constants.confLoc)
 conf_logfile = load_config.Client(constants.confLoc)
 logger = None
 
+
 def err_handling(error, api):
     if type(error) is TypeError or type(error) is KeyError:
         print("Please provide all required fields for: " + api + " in the .env.yml")
@@ -45,13 +46,15 @@ if conf_logfile.error is not None or conf_client_backend.error is not None or co
         logger = rotating_logger.create_log("./log.txt", 2048000, 5, logging.INFO)
         logger.info("Please provide a location for the log file")
     else:
-        logger = rotating_logger.create_log(conf_logfile.log_path+conf_logfile.log_name, conf_logfile.max_size, conf_logfile.old_logs, logging.INFO)
+        logger = rotating_logger.create_log(conf_logfile.log_path + conf_logfile.log_name, conf_logfile.max_size,
+                                            conf_logfile.old_logs, logging.INFO)
     if conf_client_backend.error is not None:
         err_handling(conf_client_backend.error, "client-backend")
     elif conf_client_client.error is not None:
         err_handling(conf_client_client.error, "client-cleint")
 else:
-    logger = rotating_logger.create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
+    logger = rotating_logger.create_log(conf_logfile.log_path + conf_logfile.log_name, conf_logfile.max_size,
+                                        conf_logfile.old_logs, logging.INFO)
 
 
 class Playback(Resource):
@@ -97,7 +100,8 @@ class Playback(Resource):
             # TODO: send error as response to backend
             # TODO: activate Bluetooth, trx multicast server and send GET to Client-Client\listen with multicast_ip
             urls = []
-            logger.info("Starting listening session on: " + multicast + " with the interface: " + data['method'] + " on the devices:")
+            logger.info("Starting listening session on: " + multicast + " with the interface: " + data[
+                'method'] + " on the devices:")
             # Create parameter for get requests (Client-Client)
             getdata = "multicast_ip=" + multicast + "&method=" + data['method']
             for num, ip in enumerate(data['device_ips']):
@@ -128,7 +132,9 @@ class Playback(Resource):
                 ips = []
                 for e in err_list:
                     ips.append(e['ip'])
-                return {'error': {'code': status_codes.server_error_at_client, 'message': 'Internal Server Error at IPs'}, 'dead_ips': ips}
+                return {
+                    'error': {'code': status_codes.server_error_at_client, 'message': 'Internal Server Error at IPs'},
+                    'dead_ips': ips}
 
             # starting the bluetooth interface and looking for errors
             ret = bluetooth.set_discoverable(False, data['displayname'])
@@ -159,11 +165,14 @@ class Playback(Resource):
         params_present = data_available(data, ['ips'])
         if params_present['code'] != status_codes.ok:
             if params_present['code'] == status_codes.bad_request:
-                return {'code': status_codes.single_param_missing, "message": "Please provide all necessary data " + str(params_present['missing']).replace("'", "")}, status_codes.bad_request
-        elif len(data['ips'])>0:
+                return {'code': status_codes.single_param_missing,
+                        "message": "Please provide all necessary data " + str(params_present['missing']).replace("'",
+                                                                                                                 "")}, status_codes.bad_request
+        elif len(data['ips']) > 0:
             urls = []
             for num, ip in enumerate(data['ips']):
-                urls.append(conf_client_client.protocol+"://"+ip+":"+str(conf_client_client.port) + conf_client_client.path)
+                urls.append(conf_client_client.protocol + "://" + ip + ":" + str(
+                    conf_client_client.port) + conf_client_client.path)
             resp = req.greq_delete(urls)
             dead_ip = []
             not_listening = []
@@ -176,7 +185,8 @@ class Playback(Resource):
                     dead_ip.append(data['ips'][num])
 
             if len(not_listening) != 0:
-                return {'code': status_codes.client_not_listening, 'message': str(not_listening).replace("'", "") + " is currently not listening"}
+                return {'code': status_codes.client_not_listening,
+                        'message': str(not_listening).replace("'", "") + " is currently not listening"}
 
         pulse.stop_outgoing_stream()
         bluetooth.set_discoverable(True, "")
