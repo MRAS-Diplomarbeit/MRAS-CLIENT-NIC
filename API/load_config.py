@@ -6,7 +6,11 @@ class Client:
         try:
             file = open(r'' + filepath)
             yaml_file = yaml.load(file, Loader=yaml.FullLoader)
-            self.logpath = yaml_file['client']['logfile']
+            self.log_name = yaml_file['client']['logfile']
+            self.log_path = yaml_file['logs']['path']
+            # Load log size in MB and convert to KB and Byte
+            self.max_size = (yaml_file['logs']['maxSize']) * 1024 * 1024
+            self.old_logs = yaml_file['logs']['oldLogs']
             self.error = None
         except (IOError, TypeError, KeyError) as e:
             self.error = e

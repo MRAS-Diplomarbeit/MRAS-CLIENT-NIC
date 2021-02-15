@@ -24,7 +24,6 @@ def rotator(source, dest):
         sys.exit(-1)
 
 
-
 def create_log(path, size, back_up_count, level):
     logger = logging.getLogger()
     logger.setLevel(level),
@@ -34,3 +33,7 @@ def create_log(path, size, back_up_count, level):
     handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s'))
     logger.addHandler(handler)
     return logger
+
+
+def create_log(logger_config):
+    pass

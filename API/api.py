@@ -45,7 +45,7 @@ if conf_logfile.error is not None or conf_client_backend.error is not None or co
         logger = rotating_logger.create_log("./log.txt", 2048000, 5, logging.INFO)
         logger.info("Please provide a location for the log file")
     else:
-        logger = rotating_logger.create_log(conf_logfile.logpath, 2048000, 5, logging.INFO)
+        logger = rotating_logger.create_log(conf_logfile.log_path+conf_logfile.log_name, conf_logfile.max_size, conf_logfile.old_logs, logging.INFO)
     if conf_client_backend.error is not None:
         err_handling(conf_client_backend.error, "client-backend")
     elif conf_client_client.error is not None:
