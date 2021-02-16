@@ -9,10 +9,11 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m'
 
-HOSTNAME='localhost'
+HOSTNAME='mrasserver'
 
 clear
-if [ $(ping localhost) != 0 ];
+# Testing if this is the first MRAS-Device (Default settings)
+if ! ping -c 1 -w 2 $HOSTNAME > /dev/null;
 then
   printf "Is this the first MRAS-Device in your Network? [${GREEN}Y${NC}|${RED}N${NC}](default: ${YELLOW}Y${NC}):"
   read server
@@ -27,21 +28,34 @@ then
   if [ "$server" != "N" ];
   then
     echo install server
-    # TODO: install server parts
+    # TODO: install server parts, change hostname to mrasserver
+  else
+    printf "Have you changed the hostname of the server? [${GREEN}Y${NC}|${RED}N${NC}](default: ${YELLOW}N${NC}):"
+    read changedHost
+    while [ "$changedHost" != "Y" ] && [ "$changedHost" != "N" ] && [ "$changedHost" != " " ];
+      do
+      printf "Wrong input: ${RED}$server${NC}. Please choose [${GREEN}Y${NC}|${RED}N${NC}]:"
+      read server
+    done
+    if [ "$changedHost" == "Y" ];
+    then
+      printf "Please enter the hostname of the initial server"
+      read HOSTNAME
+    fi
   fi
 fi
-printf "Please enter "
+printf "Installing MRAS-Client"
 
-mkdir MRAS
-cd MRAS
-apt-get install git python3-pip python3-venv pulseaudio pulseaudio-utils -y
+# mkdir MRAS
+# cd MRAS
+# apt-get install git python3-pip python3-venv pulseaudio pulseaudio-utils -y
 
 
 # Bluetooth set rights
-sudo usermod -a -G bluetooth pi
+# sudo usermod -a -G bluetooth pi
 
 
-python3 -m pip install --user virtualenv
-python3 -m venv venv
-source venv/bin/activate
-pip3 install flask flask_restful pyyaml aiohttp requests grequests
+# python3 -m pip install --user virtualenv
+# python3 -m venv venv
+# source venv/bin/activate
+# pip3 install flask flask_restful pyyaml aiohttp requests grequests
