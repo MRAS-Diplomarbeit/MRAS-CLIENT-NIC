@@ -15,6 +15,24 @@ class Client:
         except (IOError, TypeError, KeyError) as e:
             self.error = e
 
+    @property
+    def log_name(self):
+        return self.log_name
+
+    @log_name.setter
+    def log_name(self, value):
+        # TODO: write to yaml file
+        return ValueError
+
+    @property
+    def log_path(self):
+        return self.log_path
+
+    @log_path.setter
+    def log_path(self, value):
+        # TODO. write to yaml
+        return ValueError
+
 
 class ClientBackend:
     def __init__(self, filepath):

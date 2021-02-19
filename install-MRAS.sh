@@ -28,7 +28,9 @@ then
   if [ "$server" != "N" ];
   then
     echo install server
-    # TODO: install server parts, change hostname to mrasserver
+    # TODO: install node (webserver)
+    # apt-get install wamerican redis-server mysql-server -y
+    hostname $HOSTNAME
   else
     printf "Have you changed the hostname of the server? [${GREEN}Y${NC}|${RED}N${NC}](default: ${YELLOW}N${NC}):"
     read changedHost
