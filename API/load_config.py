@@ -6,32 +6,48 @@ class Client:
         try:
             file = open(r'' + filepath)
             yaml_file = yaml.load(file, Loader=yaml.FullLoader)
-            self.log_name = yaml_file['client']['logfile']
-            self.log_path = yaml_file['logs']['path']
-            # Load log size in MB and convert to KB and Byte
-            self.max_size = (yaml_file['logs']['maxSize']) * 1024 * 1024
-            self.old_logs = yaml_file['logs']['oldLogs']
+            self._log_name = yaml_file['client']['logfile']
+            self._log_path = yaml_file['logs']['path']
+            self._max_size = yaml_file['logs']['maxSize']
+            self._old_logs = yaml_file['logs']['oldLogs']
             self.error = None
         except (IOError, TypeError, KeyError) as e:
             self.error = e
 
     @property
     def log_name(self):
-        return self.log_name
+        return self._log_name
 
     @log_name.setter
     def log_name(self, value):
         # TODO: write to yaml file
-        return ValueError
+        pass
 
     @property
     def log_path(self):
-        return self.log_path
+        return self._log_path
 
     @log_path.setter
     def log_path(self, value):
         # TODO. write to yaml
-        return ValueError
+        pass
+
+    @property
+    def max_size(self):
+        # Load log size in MB and convert to KB and Byte
+        return self._max_size * 1024 * 1024
+
+    @max_size.setter
+    def max_size(self, value):
+        self._max_size = value
+
+    @property
+    def old_logs(self):
+        return self._old_logs
+
+    @old_logs.setter
+    def old_logs(self, value):
+        self._old_logs = value
 
 
 class ClientBackend:
