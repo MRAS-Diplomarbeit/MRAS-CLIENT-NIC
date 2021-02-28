@@ -10,3 +10,5 @@ client_not_listening = 1102
 bluetooth_error = 1103
 pulse_error = 1104
 sink_not_found = 1105
+too_many_lines = 1106
+err_reading_log = 1107

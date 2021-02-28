@@ -14,9 +14,11 @@ import bluetooth
 import rotating_logger
 import pulse_control as pulse
 import time
+import log_api
 
 app = Flask(__name__)
 api = Api(app)
+
 
 conf_client_backend = load_config.ClientBackend(constants.confLoc)
 conf_client_client = load_config.ClientClient(constants.confLoc)
@@ -24,11 +26,11 @@ conf_logfile = load_config.Client(constants.confLoc)
 logger = None
 
 
-def err_handling(error, api):
+def err_handling(error, api_path):
     if type(error) is TypeError or type(error) is KeyError:
-        print("Please provide all required fields for: " + api + " in the .env.yml")
+        print("Please provide all required fields for: " + api_path + " in the .env.yml")
         logger.error(date.today().strftime("%d/%m/%Y") + "-" + datetime.now().strftime(
-            "%H:%M:%S") + " Please provide all required fields for: " + api + " in the .env.yml")
+            "%H:%M:%S") + " Please provide all required fields for: " + api_path + " in the .env.yml")
         print("Error loading config file. Please provide .env.yml in the project root folder.")
         current_dir = os.getcwd()
         if platform.system() == 'Linux':
@@ -60,7 +62,7 @@ else:
 class Playback(Resource):
     def post(self):
         data = request.get_json()
-
+        print(request.remote_addr)
         # Test if all params are included
         params_present = data_available(data, ["method", "displayname", "device_ips"])
         if params_present['code'] != status_codes.ok:
@@ -195,6 +197,8 @@ class Playback(Resource):
 
 
 api.add_resource(Playback, conf_client_backend.path)
+api.add_resource(log_api.AllLogs, '/api/v1/log')
+api.add_resource(log_api.LogsToLine, '/api/v1/log/<int:lines>')
 
 
 def data_available(data, should_include):
