@@ -1,3 +1,7 @@
+import os
+import platform
+import sys
+
 import yaml
 
 
@@ -74,3 +78,16 @@ class ClientClient:
             self.error = None
         except (IOError, TypeError, KeyError) as e:
             self.error = e
+
+def err_handling(error, api_path):
+    if type(error) is TypeError or type(error) is KeyError:
+        print("Please provide all required fields for: " + api_path + " in the .env.yml")
+        print("Error loading config file. Please provide .env.yml in the project root folder.")
+        current_dir = os.getcwd()
+        if platform.system() == 'Linux':
+            print("The root folder is: " + current_dir[0:current_dir.rfind("/") + 1])
+        elif platform.system() == 'Windows':
+            print("The root folder is: " + current_dir[0:current_dir.rfind("\\") + 1])
+        print(error)
+    print(error)
+    sys.exit(-1)
