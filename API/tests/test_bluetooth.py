@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 import bluetooth_constants
-import API.bluetooth
+import bluetooth
 
 
 class BluetoothTest(unittest.TestCase):
