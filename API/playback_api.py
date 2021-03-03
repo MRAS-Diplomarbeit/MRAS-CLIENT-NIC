@@ -2,9 +2,6 @@ from flask import request
 from flask_restful import Resource
 from datetime import datetime
 
-import platform
-import sys
-import os
 import status_codes
 import load_config
 import req
@@ -19,46 +16,28 @@ conf_client_client = load_config.ClientClient(constants.confLoc)
 conf_logfile = load_config.Client(constants.confLoc)
 
 
-def err_handling(error, api_path):
-    if type(error) is TypeError or type(error) is KeyError:
-        print("Please provide all required fields for: " + api_path + " in the .env.yml")
-        print("Error loading config file. Please provide .env.yml in the project root folder.")
-        current_dir = os.getcwd()
-        if platform.system() == 'Linux':
-            print("The root folder is: " + current_dir[0:current_dir.rfind("/") + 1])
-        elif platform.system() == 'Windows':
-            print("The root folder is: " + current_dir[0:current_dir.rfind("\\") + 1])
-        print(error)
-    print(error)
-    sys.exit(-1)
-
-
 if conf_client_backend.error is not None or conf_client_client.error is not None:
     if conf_client_backend.error is not None:
-        err_handling(conf_client_backend.error, "client-backend")
+        load_config.err_handling(conf_client_backend.error, "client-backend")
     elif conf_client_client.error is not None:
-        err_handling(conf_client_client.error, "client-cleint")
+        load_config.err_handling(conf_client_client.error, "client-cleint")
 
 
 class Playback(Resource):
     def post(self):
         log = []
         data = request.get_json()
-        print(request.remote_addr)
+
         # Test if all params are included
         params_present = data_available(data, ["method", "displayname", "device_ips"])
-        if params_present['code'] != status_codes.ok:
-            if params_present['code'] == status_codes.bad_request:
-                if len(params_present['missing']) == 1:
-                    return {'code': status_codes.single_param_missing,
-                            "message": "Please provide all necessary data " + str(params_present['missing']).replace(
-                                "'", "")}, status_codes.bad_request
-                else:
-                    return {'code': status_codes.multiple_param_missing,
-                            "message": "Please provide all necessary data " + str(params_present['missing']).replace(
-                                "'", "")}, status_codes.bad_request
+        if len(params_present) == 1:
+            return {'code': status_codes.single_param_missing, "message": "Please provide all necessary data " +
+                                                                          str(params_present).replace("'", "")}, status_codes.bad_request
+        elif len(params_present) > 1:
+            return {'code': status_codes.multiple_param_missing, "message": "Please provide all necessary data " +
+                                                                            str(params_present).replace("'", "")}, status_codes.bad_request
 
-        elif len(data['device_ips']) != 0:
+        if len(data['device_ips']) != 0:
             print(data["device_ips"])
             multicast = "127.0.0.1"  # TODO: set real multicast ip
             err_list = []
@@ -78,7 +57,6 @@ class Playback(Resource):
 
             # send requests
             resp = req.greq_post(urls)
-            print(resp)
             for num, response in enumerate(resp):
                 if response is None:
                     dead_ips.append(data['device_ips'][num])
@@ -93,14 +71,14 @@ class Playback(Resource):
             print(err_list)
 
             if len(dead_ips) != 0:
-                logger.send_log(request.remote_addr, log)
+                logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
                 return {'error': {'code': status_codes.client_not_found, 'message': 'Device/s unavailable'},
                         'dead_ips': dead_ips}, status_codes.not_found
             elif len(err_list) != 0:
                 ips = []
                 for e in err_list:
                     ips.append(e['ip'])
-                logger.send_log(request.remote_addr, log)
+                logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
                 return {
                     'error': {'code': status_codes.server_error_at_client, 'message': 'Internal Server Error at IPs'},
                     'dead_ips': ips
@@ -110,7 +88,7 @@ class Playback(Resource):
             ret = bluetooth.set_discoverable(False, data['displayname'])
             if not ret:
                 logger.log("Error starting Bluetooth")
-                logger.send_log(request.remote_addr, log)
+                logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
                 return ret, 500
             logger.log("Started bluetooth listening")
 
@@ -127,7 +105,7 @@ class Playback(Resource):
             ret = bluetooth.set_discoverable(False, data['displayname'])
             if not ret:
                 logger.log("Error starting Bluetooth")
-                logger.send_log(request.remote_addr, log)
+                logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
                 return ret, 500
             else:
                 logger.log("Started bluetooth listening")
@@ -136,12 +114,12 @@ class Playback(Resource):
         log = []
         data = request.get_json()
         params_present = data_available(data, ['ips'])
-        if params_present['code'] != status_codes.ok:
-            if params_present['code'] == status_codes.bad_request:
-                return {'code': status_codes.single_param_missing,
-                        "message": "Please provide all necessary data " + str(params_present['missing']).replace("'",
-                                                                                                                 "")}, status_codes.bad_request
-        elif len(data['ips']) > 0:
+
+        if len(params_present) != 0:
+            return {'code': status_codes.single_param_missing,"message": "Please provide all necessary data " +
+                                                                         str(params_present).replace("'", "")}, status_codes.bad_request
+
+        if len(data['ips']) > 0:
             urls = []
 
             for num, ip in enumerate(data['ips']):
@@ -165,7 +143,7 @@ class Playback(Resource):
         pulse.stop_outgoing_stream()
         bluetooth.set_discoverable(True, "")
         log.append(logger.log("Stopped bluetooth listening"))
-        logger.send_log(request.remote_addr,log)
+        logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
         return
 
 
@@ -175,12 +153,9 @@ def add_time(message: str) -> str:
 
 def data_available(data, should_include):
     if data is None:
-        return {'code': status_codes.bad_request, 'missing': should_include}
+        return should_include
     missing_param = []
     for param in should_include:
         if param not in data:
             missing_param.append(param)
-    if len(missing_param) != 0:
-        return {'code': status_codes.bad_request, 'missing': missing_param}
-    else:
-        return {'code': status_codes.ok}
+    return missing_param

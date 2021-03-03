@@ -14,6 +14,7 @@ class Client:
             self._log_path = yaml_file['logs']['path']
             self._max_size = yaml_file['logs']['maxSize']
             self._old_logs = yaml_file['logs']['oldLogs']
+            self._update_port = yaml_file['server']['client']['port']
             self.error = None
         except (IOError, TypeError, KeyError) as e:
             self.error = e
@@ -53,6 +54,11 @@ class Client:
     def old_logs(self, value):
         self._old_logs = value
 
+    @property
+    def update_port(self):
+        return self._update_port
+
+
 
 class ClientBackend:
     def __init__(self, filepath):
@@ -78,6 +84,7 @@ class ClientClient:
             self.error = None
         except (IOError, TypeError, KeyError) as e:
             self.error = e
+
 
 def err_handling(error, api_path):
     if type(error) is TypeError or type(error) is KeyError:
