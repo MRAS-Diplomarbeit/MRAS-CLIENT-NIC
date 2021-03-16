@@ -5,6 +5,7 @@ import load_config
 import constants
 import log_api
 import playback_api
+import method_api
 
 app = Flask(__name__)
 api = Api(app)
@@ -18,6 +19,7 @@ if conf_client_backend.error is not None:
 api.add_resource(playback_api.Playback, conf_client_backend.path)
 api.add_resource(log_api.AllLogs, '/api/v1/log')
 api.add_resource(log_api.LogsToLine, '/api/v1/log/<int:lines>')
+api.add_resource(method_api.Method, '/api/v1/method')
 
 
 if __name__ == '__main__':

@@ -23,6 +23,12 @@ def parse_list(list: [str], type: str) -> dict:
             tmp_sink[pair[0].replace('\t', '')] = pair[1].replace(' ', '', 1).replace('\n', '')
             prev_key = pair[0].replace('\t', '')
         # special case for multiline objects
+        elif '=' in line:
+            pair = line.split('=')
+            tmp_sink[pair[0].replace('\t', '').replace(' ', '')] = pair[1].replace(' ', '', 1).replace('\n',
+                                                                                                       '').replace('"',
+                                                                                                                   '')
+            prev_key = pair[0].replace('\t', '')
         elif line != '\n':
             tmp_sink[prev_key] = tmp_sink[prev_key] + line.replace('\t', '').replace('\n', '')
     # add last device to sinks dict
@@ -46,6 +52,24 @@ def get_modules() -> dict:
     return parse_list(lines, "Module")
 
 
+def get_cards() -> dict:
+    lines = os.popen('pactl list cards').readlines()
+    return parse_list(lines, 'Card')
+
+
+def get_sink_inputs() -> dict:
+    lines = os.popen('pactl list sink-inputs').readlines()
+    return parse_list(lines, 'Sink Input')
+
+
+def get_sink_input_id(name: str) -> int:
+    input_sinks = get_sink_inputs()
+    for input_sink in input_sinks:
+        if input_sinks[input_sink]['Driver'] == name:
+            return int(input_sink[input_sink.find('#') + 1:])
+    raise ModuleNotFoundError
+
+
 # returns one sink as an dict
 def get_sink(name: str) -> dict:
     sinks = get_sinks()
@@ -55,6 +79,9 @@ def get_sink(name: str) -> dict:
             return sink
     return {'code': status_codes.sink_not_found,
             'message': 'Unable to find the sink: ' + name + ' in sinks: ' + str(get_sink_names())}
+
+
+# TODO: Change return type to raise exception
 
 
 # returns an list of names from the sinks
@@ -91,6 +118,24 @@ def get_source_number(driver: str) -> int:
             return source[8:]
 
 
+def get_card_names() -> [str]:
+    cards = get_cards()
+    card_names = []
+    for card in cards:
+        if 'alsa.card_name' in cards[card]:
+            card_names.append(cards[card]['alsa.card_name'])
+        else:
+            card_names.append(cards[card]['Name'])
+    return card_names
+
+
+def get_card_id(name: str) -> int:
+    cards = get_cards()
+    for card in cards:
+        if 'alsa.card_name' in cards[card] and cards[card]['alsa.card_name'] == name or cards[card]['Name'] == name:
+            return int(card[card.find('#')+1:])
+
+
 # adds a sink with a specified name
 def add_sink(name: str):
     os.system('pactl load-module module-null-sink sink_name=' + name)
@@ -115,6 +160,10 @@ def remove_sink(name) -> bool:
     sink_id = get_sink(name)['Owner Module']
     os.system('pactl unload-module ' + sink_id)
     return not sink_exists(name)
+
+
+def move_sink_input(sink_id: int, card_id: int) -> None:
+    os.system('pactl move-sink-input ' + str(sink_id) + ' ' + str(card_id))
 
 
 @overload

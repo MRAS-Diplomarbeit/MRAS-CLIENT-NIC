@@ -11,6 +11,12 @@ NC='\033[0m'
 
 HOSTNAME='mrasserver'
 
+parse_yaml () {
+  while read line; do
+    echo $line
+  done < .env.yml
+}
+
 clear
 # Testing if this is the first MRAS-Device (Default settings)
 if ! ping -c 1 -w 2 $HOSTNAME > /dev/null;
@@ -31,6 +37,7 @@ then
     # TODO: install node (webserver)
     # apt-get install wamerican redis-server mysql-server -y
     hostname $HOSTNAME
+    mysql -e "CREATE USER "
   else
     printf "Have you changed the hostname of the server? [${GREEN}Y${NC}|${RED}N${NC}](default: ${YELLOW}N${NC}):"
     read changedHost

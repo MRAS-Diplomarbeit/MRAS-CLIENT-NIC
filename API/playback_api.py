@@ -10,6 +10,7 @@ import pulse_control as pulse
 import time
 import logger
 import constants
+import helper
 
 conf_client_backend = load_config.ClientBackend(constants.confLoc)
 conf_client_client = load_config.ClientClient(constants.confLoc)
@@ -29,7 +30,7 @@ class Playback(Resource):
         data = request.get_json()
 
         # Test if all params are included
-        params_present = data_available(data, ["method", "displayname", "device_ips"])
+        params_present = helper.data_available(data, ["method", "displayname", "device_ips"])
         if len(params_present) == 1:
             return {'code': status_codes.single_param_missing, "message": "Please provide all necessary data " +
                                                                           str(params_present).replace("'", "")}, status_codes.bad_request
@@ -113,7 +114,7 @@ class Playback(Resource):
     def delete(self):
         log = []
         data = request.get_json()
-        params_present = data_available(data, ['ips'])
+        params_present = helper.data_available(data, ['ips'])
 
         if len(params_present) != 0:
             return {'code': status_codes.single_param_missing,"message": "Please provide all necessary data " +
@@ -151,11 +152,11 @@ def add_time(message: str) -> str:
     return str(datetime.now()) + message
 
 
-def data_available(data, should_include):
-    if data is None:
-        return should_include
-    missing_param = []
-    for param in should_include:
-        if param not in data:
-            missing_param.append(param)
-    return missing_param
+# def data_available(data, should_include):
+#     if data is None:
+#         return should_include
+#     missing_param = []
+#     for param in should_include:
+#         if param not in data:
+#             missing_param.append(param)
+#     return missing_param
