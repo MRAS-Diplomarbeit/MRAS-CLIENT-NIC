@@ -101,6 +101,8 @@ class Playback(Resource):
 
             for ip in data['device_ips']:
                 pulse.send_audio_source(source_id, ip)
+
+            # TODO: move playback to write method
         else:
             # Playing audio locally
             ret = bluetooth.set_discoverable(False, data['displayname'])
@@ -110,6 +112,12 @@ class Playback(Resource):
                 return ret, 500
             else:
                 logger.log("Started bluetooth listening")
+                source_id = pulse.get_source_number(constants.bluetooth_driver)
+                while source_id is None:
+                    time.sleep(2)
+                    source_id = pulse.get_source_number(constants.bluetooth_driver)
+                pulse.move_sink_input(pulse.get_sink_input_id(constants.bluetooth_driver),
+                                      pulse.get_card_id(data['method']))
 
     def delete(self):
         log = []
@@ -151,12 +159,3 @@ class Playback(Resource):
 def add_time(message: str) -> str:
     return str(datetime.now()) + message
 
-
-# def data_available(data, should_include):
-#     if data is None:
-#         return should_include
-#     missing_param = []
-#     for param in should_include:
-#         if param not in data:
-#             missing_param.append(param)
-#     return missing_param
