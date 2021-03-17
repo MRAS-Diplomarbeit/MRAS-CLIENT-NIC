@@ -61,7 +61,7 @@ def greq_post(urls):
     req_url = []
     for url in urls:
         req_url.append(grequests.get(url, timeout=2))
-    print(urls)  # TODO: Logging
+    print(urls)
     res = grequests.map(req_url)
     return res
 
