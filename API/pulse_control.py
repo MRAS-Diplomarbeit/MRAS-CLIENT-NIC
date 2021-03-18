@@ -1,6 +1,8 @@
 from typing import overload
+from excep import ElementNotFoundException
 import os
 import status_codes
+
 
 
 def parse_list(list: [str], type: str) -> dict:
@@ -163,7 +165,15 @@ def remove_sink(name) -> bool:
 
 
 def move_sink_input(sink_id: int, card_id: int) -> None:
+    # print(str(sink_id) + ":" + str(card_id)
+    if sink_id or card_id:
+        print("Error")
+        raise ElementNotFoundException("Sink_id: "+str(sink_id)+", card_id:"+str(card_id))
     os.system('pactl move-sink-input ' + str(sink_id) + ' ' + str(card_id))
+
+
+def change_volume_sink_input(sink_id: int, vol: int) -> None:
+    os.system('pactl set-sink-input-volume ' + str(sink_id) + ' ' + str(vol) + '%')
 
 
 @overload
@@ -204,3 +214,5 @@ def unload_module(module: str) -> bool:
         return True
 
 # TODO: list modules, get module number of sending streams
+
+

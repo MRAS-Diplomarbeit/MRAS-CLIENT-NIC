@@ -1,6 +1,7 @@
 from flask import request
 from flask_restful import Resource
 from datetime import datetime
+from excep import ElementNotFoundException
 
 import status_codes
 import load_config
@@ -11,6 +12,7 @@ import time
 import logger
 import constants
 import helper
+
 
 conf_client_backend = load_config.ClientBackend(constants.confLoc)
 conf_client_client = load_config.ClientClient(constants.confLoc)
@@ -99,8 +101,24 @@ class Playback(Resource):
                 time.sleep(2)
                 source_id = pulse.get_source_number(constants.bluetooth_driver)
 
-            for ip in data['device_ips']:
-                pulse.send_audio_source(source_id, ip)
+            # send to all individual ips
+            # for ip in data['device_ips']:
+            #     pulse.send_audio_source(source_id, ip)
+
+            # send the source to an multicast ip and to the local ip
+            try:
+                pulse.send_audio_source(source_id, multicast)
+                pulse.send_audio_source(source_id, "127.0.0.1")
+
+                # changing volume of loopback adapter to 0 and listening to own stream with an equal delay
+                pulse.change_volume_sink_input(pulse.get_sink_input_id(constants.loopback_driver), 0)
+                pulse.listen_to_stream("127.0.0.1", constants.default_latency)
+
+                # move rtp listener to the given interface
+                pulse.move_sink_input(pulse.get_sink_input_id(constants.rtp_recv_driver),
+                                      pulse.get_card_id(data['method']))
+            except ElementNotFoundException as err:
+                return{'code': status_codes.sink_not_found, 'message': str(err)}, 400
 
             # TODO: move playback to write method
         else:
@@ -114,10 +132,15 @@ class Playback(Resource):
                 logger.log("Started bluetooth listening")
                 source_id = pulse.get_source_number(constants.bluetooth_driver)
                 while source_id is None:
-                    time.sleep(2)
+                    time.sleep(0.5)
                     source_id = pulse.get_source_number(constants.bluetooth_driver)
-                pulse.move_sink_input(pulse.get_sink_input_id(constants.bluetooth_driver),
+                try:
+                    pulse.move_sink_input(pulse.get_sink_input_id(constants.loopback_driver),
                                       pulse.get_card_id(data['method']))
+                    pulse.change_volume_sink_input(pulse.get_sink_input_id(constants.loopback_driver), 100)
+                except ElementNotFoundException as err:
+                    print(err)
+                    return{'code': status_codes.sink_not_found, 'message': str(err)}, 400
 
     def delete(self):
         log = []
@@ -150,6 +173,7 @@ class Playback(Resource):
                         'message': str(not_listening).replace("'", "") + " is currently not listening"}
 
         pulse.stop_outgoing_stream()
+        pulse.stop_incoming_stream()
         bluetooth.set_discoverable(True, "")
         log.append(logger.log("Stopped bluetooth listening"))
         logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)

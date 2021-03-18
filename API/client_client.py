@@ -25,6 +25,8 @@ class Listen(Resource):
         # TODO: Listen to multicast ip
 
         pulse.listen_to_stream(data['multicast_ip'], const.default_latency)
+        pulse.move_sink_input(pulse.get_sink_input_id(const.rtp_recv_driver),
+                              pulse.get_card_id(data['method']))
         is_listening = True
 
     def delete(self):
