@@ -56,7 +56,7 @@ class Playback(Resource):
             for num, ip in enumerate(data['device_ips']):
                 urls.append(conf_client_client.protocol + "://" + ip + ":" + str(
                     conf_client_client.port) + conf_client_client.path + "?" + getdata)
-                logger.log("\t" + urls[num])
+                log.append(logger.log("\t" + urls[num]))
 
             # send requests
             resp = req.greq_post(urls)
@@ -93,7 +93,7 @@ class Playback(Resource):
                 logger.log("Error starting Bluetooth")
                 logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
                 return ret, 500
-            logger.log("Started bluetooth listening")
+            log.append(logger.log("Started bluetooth listening"))
 
             # get the number of the source from the bluetooth audio and start the audio transmission
             source_id = pulse.get_source_number(constants.bluetooth_driver)
@@ -125,11 +125,11 @@ class Playback(Resource):
             # Playing audio locally
             ret = bluetooth.set_discoverable(False, data['displayname'])
             if not ret:
-                logger.log("Error starting Bluetooth")
+                log.append(logger.log("Error starting Bluetooth"))
                 logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
                 return ret, 500
             else:
-                logger.log("Started bluetooth listening")
+                log.append(logger.log("Started bluetooth listening"))
                 source_id = pulse.get_source_number(constants.bluetooth_driver)
                 while source_id is None:
                     time.sleep(0.5)
