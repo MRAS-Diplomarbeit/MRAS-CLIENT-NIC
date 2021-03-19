@@ -42,7 +42,7 @@ class Playback(Resource):
 
         if len(data['device_ips']) != 0:
             print(data["device_ips"])
-            multicast = "127.0.0.1"  # TODO: set real multicast ip
+            multicast = "224.1.1.1"  # TODO: set real multicast ip
             err_list = []
             dead_ips = []
 
@@ -52,7 +52,7 @@ class Playback(Resource):
             log.append(logger.log("Starting listening session on: " + multicast + " with the interface: " + data[
                 'method'] + " on the devices:"))
             # Create parameter for get requests (Client-Client)
-            getdata = "multicast_ip=" + multicast + "&method=" + data['method']
+            getdata = "multicast_ip=" + multicast + "&method=" + data['method'].replace(" ", "%20")
             for num, ip in enumerate(data['device_ips']):
                 urls.append(conf_client_client.protocol + "://" + ip + ":" + str(
                     conf_client_client.port) + conf_client_client.path + "?" + getdata)
@@ -111,10 +111,17 @@ class Playback(Resource):
                 pulse.send_audio_source(source_id, "127.0.0.1")
 
                 # changing volume of loopback adapter to 0 and listening to own stream with an equal delay
-                pulse.change_volume_sink_input(pulse.get_sink_input_id(constants.loopback_driver), 0)
-                pulse.listen_to_stream("127.0.0.1", constants.default_latency)
+                sink_input_id = None
+                while sink_input_id is None:
+                    try:
+                        sink_input_id = pulse.get_sink_input_id(constants.loopback_driver)
+                        pulse.change_volume_sink_input(sink_input_id, 0)
+                        pulse.listen_to_stream("127.0.0.1", constants.default_latency)
+                    except:
+                        print("Not loaded")
 
                 # move rtp listener to the given interface
+                time.sleep(5)  # TODO: Fix error (driver not found) and remove sleep
                 pulse.move_sink_input(pulse.get_sink_input_id(constants.rtp_recv_driver),
                                       pulse.get_card_id(data['method']))
             except ElementNotFoundException as err:

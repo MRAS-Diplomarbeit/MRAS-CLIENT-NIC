@@ -4,7 +4,6 @@ import os
 import status_codes
 
 
-
 def parse_list(list: [str], type: str) -> dict:
     devices = {}
     tmp_sink = {}
@@ -166,7 +165,7 @@ def remove_sink(name) -> bool:
 
 def move_sink_input(sink_id: int, card_id: int) -> None:
     # print(str(sink_id) + ":" + str(card_id)
-    if sink_id or card_id:
+    if sink_id is None or card_id is None:
         print("Error")
         raise ElementNotFoundException("Sink_id: "+str(sink_id)+", card_id:"+str(card_id))
     os.system('pactl move-sink-input ' + str(sink_id) + ' ' + str(card_id))
@@ -203,7 +202,7 @@ def stop_incoming_stream() -> bool:
 
 
 def listen_to_stream(ip: str, latency: int) -> None:
-    os.system('pactl load-module module-rtp-recv latency_msec=' + str(latency) + 'sap_address=' + ip)
+    os.system('pactl load-module module-rtp-recv latency_msec=' + str(latency) + ' sap_address=' + ip)
 
 
 def unload_module(module: str) -> bool:
