@@ -32,7 +32,7 @@ class Playback(Resource):
         data = request.get_json()
 
         # Test if all params are included
-        params_present = helper.data_available(data, ["method", "displayname", "device_ips"])
+        params_present = helper.data_available(data, ["method", "displayname", "device_ips", "multicast_ip"])
         if len(params_present) == 1:
             return {'code': status_codes.single_param_missing, "message": "Please provide all necessary data " +
                                                                           str(params_present).replace("'", "")}, status_codes.bad_request
@@ -60,6 +60,7 @@ class Playback(Resource):
 
             # send requests
             resp = req.greq_post(urls)
+            print(resp)
             for num, response in enumerate(resp):
                 if response is None:
                     dead_ips.append(data['device_ips'][num])
@@ -90,7 +91,7 @@ class Playback(Resource):
             # starting the bluetooth interface and looking for errors
             ret = bluetooth.set_discoverable(False, data['displayname'])
             if not ret:
-                logger.log("Error starting Bluetooth")
+                log.append(logger.log("Error starting Bluetooth"))
                 logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
                 return ret, 500
             log.append(logger.log("Started bluetooth listening"))
@@ -119,14 +120,16 @@ class Playback(Resource):
                         pulse.listen_to_stream("127.0.0.1", constants.default_latency)
                     except:
                         print("Not loaded")
+                        log.append(logger.log("Not loaded"))
 
                 # move rtp listener to the given interface
                 time.sleep(5)  # TODO: Fix error (driver not found) and remove sleep
                 pulse.move_sink_input(pulse.get_sink_input_id(constants.rtp_recv_driver),
                                       pulse.get_card_id(data['method']))
             except ElementNotFoundException as err:
+                logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
                 return{'code': status_codes.sink_not_found, 'message': str(err)}, 400
-
+            logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
             # TODO: move playback to write method
         else:
             # Playing audio locally
@@ -147,7 +150,9 @@ class Playback(Resource):
                     pulse.change_volume_sink_input(pulse.get_sink_input_id(constants.loopback_driver), 100)
                 except ElementNotFoundException as err:
                     print(err)
+                    logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
                     return{'code': status_codes.sink_not_found, 'message': str(err)}, 400
+                logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
 
     def delete(self):
         log = []
@@ -158,7 +163,7 @@ class Playback(Resource):
             return {'code': status_codes.single_param_missing,"message": "Please provide all necessary data " +
                                                                          str(params_present).replace("'", "")}, status_codes.bad_request
 
-        if len(data['ips']) > 0:
+        if len(data['ips']) > 1:
             urls = []
 
             for num, ip in enumerate(data['ips']):
@@ -179,11 +184,12 @@ class Playback(Resource):
                 return {'code': status_codes.client_not_listening,
                         'message': str(not_listening).replace("'", "") + " is currently not listening"}
 
-        pulse.stop_outgoing_stream()
-        pulse.stop_incoming_stream()
+            pulse.stop_outgoing_stream()
+            pulse.stop_incoming_stream()
+
         bluetooth.set_discoverable(True, "")
         log.append(logger.log("Stopped bluetooth listening"))
-        logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
+        print("Log: "+str(logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)))
         return
 
 
