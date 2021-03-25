@@ -154,6 +154,7 @@ def get_card_id(name: str) -> int:
     for card in cards:
         if 'alsa.card_name' in cards[card] and cards[card]['alsa.card_name'] == name or cards[card]['Name'] == name:
             return int(card[card.find('#')+1:])
+    raise NoCardsFoundException
 
 
 # adds a sink with a specified name

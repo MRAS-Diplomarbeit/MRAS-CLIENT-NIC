@@ -20,6 +20,9 @@ jobs:
       run: |
         sed -i "s|/home/pi/|/home/runner/work/MRAS-CLIENT-NIC/|g" .env.yml
         mkdir /home/runner/work/MRAS-CLIENT-NIC/logs
+    - name: Replace logging to remote address with mock server
+      run: |
+        sed -i "s|\"http://\" + ip + \"/log\"|\"http://ad21d7ee-c4d7-4dc2-8b0c-35b2083b27c5.mock.pstmn.io/log\"|g" API/logger.py
     - name: Run Tests
       run: |
         export PYTHONPATH=API

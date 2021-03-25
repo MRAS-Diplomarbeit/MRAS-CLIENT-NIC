@@ -17,6 +17,32 @@ parse_yaml () {
   done < .env.yml
 }
 
+print_quest () {
+  printf "%s [${GREEN}Y${NC}|${RED}N${NC}](default: ${YELLOW}Y${NC})" "$1"
+}
+
+to_lower_case() {
+  local lowercase=$(echo $1 | tr '[A-Z]' '[a-z]')
+  echo $lowercase
+}
+
+get_validate_answer(){
+  local temp='hee'
+  read temp
+  temp=$(to_lower_case $temp)
+  while [ "$temp" != "y" ] && [ "$temp" != "n" ] && [ "$temp" != "" ];
+  do
+    print_quest "Please enter a valid option! $1"
+    read temp
+  done
+  if [ "$temp" == 'y' ];
+  then
+    return 1
+  fi
+  return 0
+}
+
+
 clear
 # Testing if this is the first MRAS-Device (Default settings)
 if ! ping -c 1 -w 2 $HOSTNAME > /dev/null;
@@ -35,7 +61,7 @@ then
   then
     echo install server
     # TODO: install node (webserver)
-    # apt-get install wamerican redis-server mysql-server -y
+    # apt-get install wamerican redis-server mariadb-server -y
     hostname $HOSTNAME
     mysql -e "CREATE USER "
   else

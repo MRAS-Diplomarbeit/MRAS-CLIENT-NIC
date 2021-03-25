@@ -1,6 +1,7 @@
 from flask import request
 from flask_restful import Resource
 from excep import ElementNotFoundException, SinkNotLoadedException
+from DB.db_access import Access
 
 import status_codes
 import load_config
@@ -16,6 +17,8 @@ import helper
 conf_client_backend = load_config.ClientBackend(constants.confLoc)
 conf_client_client = load_config.ClientClient(constants.confLoc)
 conf_logfile = load_config.Client(constants.confLoc)
+
+DB = Access()
 
 
 if conf_client_backend.error is not None or conf_client_client.error is not None:
@@ -74,73 +77,76 @@ class Playback(Resource):
             print(err_list)
 
             if len(dead_ips) != 0:
-                logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
+                logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
                 return {'error': {'code': status_codes.client_not_found, 'message': 'Device/s unavailable'},
                         'dead_ips': dead_ips}, status_codes.not_found
             elif len(err_list) != 0:
                 ips = []
                 for e in err_list:
                     ips.append(e['ip'])
-                logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
+                logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
                 return {
                     'error': {'code': status_codes.server_error_at_client, 'message': 'Internal Server Error at IPs'},
                     'dead_ips': ips
                 }
 
             # starting the bluetooth interface and looking for errors
-            ret = bluetooth.set_discoverable(False, data['displayname'])
-            if not ret:
-                log.append(logger.log("Error starting Bluetooth"))
-                logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
-                return ret, 500
-            log.append(logger.log("Started bluetooth listening"))
+            if data['method'] == "bluetooth":
+                ret = bluetooth.set_discoverable(False, data['displayname'])
+                if not ret:
+                    log.append(logger.log("Error starting Bluetooth"))
+                    logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
+                    return ret, 500
+                log.append(logger.log("Started bluetooth listening"))
 
-            # get the number of the source from the bluetooth audio and start the audio transmission
-            source_id = pulse.get_source_number(constants.bluetooth_driver)
-            while source_id is None:
-                time.sleep(2)
+                # get the number of the source from the bluetooth audio and start the audio transmission
                 source_id = pulse.get_source_number(constants.bluetooth_driver)
+                while source_id is None:
+                    time.sleep(2)
+                    source_id = pulse.get_source_number(constants.bluetooth_driver)
 
-            # send to all individual ips
-            # for ip in data['device_ips']:
-            #     pulse.send_audio_source(source_id, ip)
+                # send to all individual ips
+                # for ip in data['device_ips']:
+                #     pulse.send_audio_source(source_id, ip)
 
-            # send the source to an multicast ip and to the local ip
-            try:
-                pulse.send_audio_source(source_id, multicast)
-                pulse.send_audio_source(source_id, "127.0.0.1")
+                # send the source to an multicast ip and to the local ip
+                try:
+                    pulse.send_audio_source(source_id, multicast)
+                    pulse.send_audio_source(source_id, "127.0.0.1")
 
-                # changing volume of loopback adapter to 0 and listening to own stream with an equal delay
-                sink_input_id = None
-                while sink_input_id is None:
-                    try:
-                        sink_input_id = pulse.get_sink_input_id(constants.loopback_driver)
-                        pulse.change_volume_sink_input(sink_input_id, 0)
-                        pulse.listen_to_stream("127.0.0.1", constants.default_latency)
-                    except SinkNotLoadedException:
-                        print("Not loaded")
-                        log.append(logger.log("Not loaded"))
+                    # changing volume of loopback adapter to 0 and listening to own stream with an equal delay
+                    sink_input_id = None
+                    while sink_input_id is None:
+                        try:
+                            sink_input_id = pulse.get_sink_input_id(constants.loopback_driver)
+                            pulse.change_volume_sink_input(sink_input_id, 0)
+                            pulse.listen_to_stream("127.0.0.1", constants.default_latency)
+                        except SinkNotLoadedException:
+                            print("Not loaded")
+                            log.append(logger.log("Not loaded"))
 
-                # move rtp listener to the given interface
-                sink_input_id = None
-                while sink_input_id is None:
-                    try:
-                        pulse.move_sink_input(pulse.get_sink_input_id(constants.rtp_recv_driver),
-                                              pulse.get_card_id(data['method']))
-                    except SinkNotLoadedException:
-                        print("Waiting on pulseaudio")
+                    # move rtp listener to the given interface
+                    sink_input_id = None
+                    while sink_input_id is None:
+                        try:
+                            pulse.move_sink_input(pulse.get_sink_input_id(constants.rtp_recv_driver),
+                                                  pulse.get_card_id(data['method']))
+                        except SinkNotLoadedException:
+                            print("Waiting on pulseaudio")
 
-            except ElementNotFoundException as err:
-                logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
-                return{'code': status_codes.sink_not_found, 'message': str(err)}, 400
-            logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
-            # TODO: move playback to write method
+                except ElementNotFoundException as err:
+                    logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
+                    return{'code': status_codes.sink_not_found, 'message': str(err)}, 400
+                logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
+            else:
+                return {'code': status_codes.not_implemented, 'message': data['method'] +
+                                                                         " is not implemented, only bluetooth"}
         else:
             # Playing audio locally
             ret = bluetooth.set_discoverable(False, data['displayname'])
             if not ret:
                 log.append(logger.log("Error starting Bluetooth"))
-                logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
+                logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
                 return ret, 500
             else:
                 log.append(logger.log("Started bluetooth listening"))
@@ -154,9 +160,9 @@ class Playback(Resource):
                     pulse.change_volume_sink_input(pulse.get_sink_input_id(constants.loopback_driver), 100)
                 except ElementNotFoundException as err:
                     print(err)
-                    logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
+                    logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
                     return{'code': status_codes.sink_not_found, 'message': str(err)}, 400
-                logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
+                logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
 
     def delete(self):
         log = []
@@ -193,5 +199,5 @@ class Playback(Resource):
 
         bluetooth.set_discoverable(True, "")
         log.append(logger.log("Stopped bluetooth listening"))
-        print("Log: "+str(logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)))
+        print("Log: "+str(logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)))
         return
