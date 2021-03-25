@@ -24,7 +24,8 @@ class Method(Resource):
 
         DB = Access()
         res = Query()
-        if len(DB.db.search((res.name == constants.db_interface_name) & (res.value == data['method']))) > 0:
+        data = DB.db.search((res.name == constants.db_interface_name) & (res.value == data['method']))
+        if len(data) > 0:
             return {'code': status_codes.already_on_interface, 'message': "Interface is already in use"}
 
         # try to switch audio interface on current session

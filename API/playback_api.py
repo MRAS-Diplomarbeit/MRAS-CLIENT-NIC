@@ -2,6 +2,7 @@ from flask import request
 from flask_restful import Resource
 from excep import ElementNotFoundException, SinkNotLoadedException
 from DB.db_access import Access
+from tinydb import Query
 
 import status_codes
 import load_config
@@ -19,6 +20,7 @@ conf_client_client = load_config.ClientClient(constants.confLoc)
 conf_logfile = load_config.Client(constants.confLoc)
 
 DB = Access()
+query = Query()
 
 
 if conf_client_backend.error is not None or conf_client_client.error is not None:
@@ -130,7 +132,7 @@ class Playback(Resource):
                     while sink_input_id is None:
                         try:
                             pulse.move_sink_input(pulse.get_sink_input_id(constants.rtp_recv_driver),
-                                                  pulse.get_card_id(data['method']))
+                                                  pulse.get_card_id(DB.search(query.name == constants.db_interface_name)))
                         except SinkNotLoadedException:
                             print("Waiting on pulseaudio")
 
