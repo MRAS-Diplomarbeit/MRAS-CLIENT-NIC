@@ -67,7 +67,8 @@ class ClientBackend:
             yaml_file = yaml.load(file, Loader=yaml.FullLoader)
             self.port = yaml_file['client']['client-backend']['port']
             self.protocol = yaml_file['client']['client-backend']['protocol']
-            self.path = yaml_file['client']['client-backend']['path']
+            self.path_playback = yaml_file['client']['client-backend']['path-playback']
+            self.path_method = yaml_file['client']['client-backend']['path-method']
             self.error = None
         except (IOError, TypeError, KeyError) as e:
             self.error = e
