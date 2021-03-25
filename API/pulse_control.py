@@ -1,5 +1,5 @@
 from typing import overload
-from excep import ElementNotFoundException
+from excep import ElementNotFoundException, SinkNotLoadedException, NoSourcesFoundException, NoSinksFoundException, NoModulesFoundException, NoCardsFoundException, NoSinkInputsFoundException
 import os
 import status_codes
 
@@ -40,26 +40,36 @@ def parse_list(list: [str], type: str) -> dict:
 # returns a dict of all the sinks with the sink number (Sink #0...) as an key
 def get_sinks() -> dict:
     lines = os.popen('pactl list sinks').readlines()
+    if len(lines) == 0:
+        raise NoSinksFoundException
     return parse_list(lines, "Sink")
 
 
 def get_sources() -> dict:
     lines = os.popen('pactl list sources').readlines()
+    if len(lines) == 0:
+        raise NoSourcesFoundException
     return parse_list(lines, "Source")
 
 
 def get_modules() -> dict:
     lines = os.popen('pactl list modules').readlines()
+    if len(lines) == 0:
+        raise NoModulesFoundException
     return parse_list(lines, "Module")
 
 
 def get_cards() -> dict:
     lines = os.popen('pactl list cards').readlines()
+    if len(lines) == 0:
+        raise NoCardsFoundException
     return parse_list(lines, 'Card')
 
 
 def get_sink_inputs() -> dict:
     lines = os.popen('pactl list sink-inputs').readlines()
+    if len(lines) == 0:
+        raise NoSinkInputsFoundException
     return parse_list(lines, 'Sink Input')
 
 
@@ -68,7 +78,7 @@ def get_sink_input_id(name: str) -> int:
     for input_sink in input_sinks:
         if input_sinks[input_sink]['Driver'] == name:
             return int(input_sink[input_sink.find('#') + 1:])
-    raise ModuleNotFoundError
+    raise SinkNotLoadedException
 
 
 # returns one sink as an dict
@@ -78,8 +88,8 @@ def get_sink(name: str) -> dict:
     for sink in sinks.values():
         if sink['Name'] == name:
             return sink
-    return {'code': status_codes.sink_not_found,
-            'message': 'Unable to find the sink: ' + name + ' in sinks: ' + str(get_sink_names())}
+    raise ElementNotFoundException("code:" + str(status_codes.sink_not_found) + "message: Unable to find the sink: " +
+                                   name + ' in sinks: ' + str(get_sink_names()))
 
 
 # TODO: Change return type to raise exception
@@ -117,6 +127,15 @@ def get_source_number(driver: str) -> int:
         if sources[source]['Driver'] == driver:
             # substring to get X from the String (Sources #X)
             return source[8:]
+    raise ElementNotFoundException
+
+
+def get_source_id(name: str) -> int:
+    sources = get_sources()
+    for source in sources:
+        if 'alsa.card_name' in sources[source] and sources[source]['alsa.card_name'] == name or sources[source]['Name'] == name:
+            return int(source[source.find('#')+1:])
+    raise ElementNotFoundException
 
 
 def get_card_names() -> [str]:

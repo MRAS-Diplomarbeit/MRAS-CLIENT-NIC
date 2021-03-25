@@ -1,7 +1,6 @@
 from flask import request
 from flask_restful import Resource
-from datetime import datetime
-from excep import ElementNotFoundException
+from excep import ElementNotFoundException, SinkNotLoadedException
 
 import status_codes
 import load_config
@@ -42,7 +41,7 @@ class Playback(Resource):
 
         if len(data['device_ips']) != 0:
             print(data["device_ips"])
-            multicast = "224.1.1.1"  # TODO: set real multicast ip
+            multicast = data['multicast_ip']
             err_list = []
             dead_ips = []
 
@@ -118,14 +117,19 @@ class Playback(Resource):
                         sink_input_id = pulse.get_sink_input_id(constants.loopback_driver)
                         pulse.change_volume_sink_input(sink_input_id, 0)
                         pulse.listen_to_stream("127.0.0.1", constants.default_latency)
-                    except:
+                    except SinkNotLoadedException:
                         print("Not loaded")
                         log.append(logger.log("Not loaded"))
 
                 # move rtp listener to the given interface
-                time.sleep(5)  # TODO: Fix error (driver not found) and remove sleep
-                pulse.move_sink_input(pulse.get_sink_input_id(constants.rtp_recv_driver),
-                                      pulse.get_card_id(data['method']))
+                sink_input_id = None
+                while sink_input_id is None:
+                    try:
+                        pulse.move_sink_input(pulse.get_sink_input_id(constants.rtp_recv_driver),
+                                              pulse.get_card_id(data['method']))
+                    except SinkNotLoadedException:
+                        print("Waiting on pulseaudio")
+
             except ElementNotFoundException as err:
                 logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)
                 return{'code': status_codes.sink_not_found, 'message': str(err)}, 400
@@ -191,8 +195,3 @@ class Playback(Resource):
         log.append(logger.log("Stopped bluetooth listening"))
         print("Log: "+str(logger.send_log("http://" + request.remote_addr + ":" + str(conf_logfile.update_port) + "/log", log)))
         return
-
-
-def add_time(message: str) -> str:
-    return str(datetime.now()) + message
-
