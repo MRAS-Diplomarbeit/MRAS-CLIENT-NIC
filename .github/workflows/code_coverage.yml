@@ -18,7 +18,7 @@ jobs:
         pip install -r requirements.txt
     - name: Replace path in yml for creating log file and creating folder (missing permissions in workflow)
       run: |
-        sed -i "s|/home/pi/|/home/runner/work/MRAS-CLIENT-NIC/|g" .env.yml
+        sed -i "s|/home/pi/|/home/runner/work/MRAS-CLIENT-NIC/|g" config.yml
         mkdir /home/runner/work/MRAS-CLIENT-NIC/logs
     - name: Replace logging to remote address with mock server
       run: |

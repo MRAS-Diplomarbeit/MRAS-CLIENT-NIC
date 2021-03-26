@@ -46,14 +46,6 @@ clear
 # Testing if this is the first MRAS-Device (Default settings)
 if ! ping -c 1 -w 2 $HOSTNAME > /dev/null;
 then
-  #printf "Is this the first MRAS-Device in your Network? [${GREEN}Y${NC}|${RED}N${NC}](default: ${YELLOW}Y${NC}):"
-  #read server
-
-  #while [ "$server" != "Y" ] && [ "$server" != "N" ] && [ "$server" != " " ];
-  #do
-  #  printf "Wrong input: ${RED}$server${NC}. Please choose [${GREEN}Y${NC}|${RED}N${NC}]:"
-  #  read server
-  #done
 
   print_quest "Is this the first MRAS-Device in your Network?"
   get_validate_answer "Is this the first MRAS-Device in your Network?"
@@ -63,7 +55,6 @@ then
     echo Installing Server components
     curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
     apt-get install wamerican redis-server mariadb-server nodejs wget -y
-    npm install npx
 
     # Change the hostname?
     print_quest "Do you want to automatically change the hostname of this device to automate further installations of Clients?"
@@ -108,34 +99,40 @@ then
     mysql -e "CREATE SCHEMA $dbname"
     mysql -e "GRANT ALL PRIVILEGES ON database_name.$dbname TO $mariaUser@localhost"
 
-    # downlaod website wget GITHUB_RELEASE
-    # 
-  fi
+    echo installing website
+    wget -q https://github.com/MRAS-Diplomarbeit/MRAS_FRONTEND/releases/latest/download/web-build.tar
+    tar -xvf web-build.tar
+    # TODO: Copy service
 
-  # test if it is the first server
-  if [ "$server" != "N" ];
-  then
-    echo install server
-    # TODO: install node (webserver)
-    # apt-get install wamerican redis-server mariadb-server -y
-    hostname $HOSTNAME
-    mysql -e "CREATE USER "
+    mkdir mrasapi
+    cd mrasapi
+    wget -q https://github.com/MRAS-Diplomarbeit/MRAS-API/releases/download/v0.0.1/mras-api-x64
+    chmod +x mras-api-x64
+    cd ..
+
   else
-    printf "Have you changed the hostname of the server? [${GREEN}Y${NC}|${RED}N${NC}](default: ${YELLOW}N${NC}):"
-    read changedHost
-    while [ "$changedHost" != "Y" ] && [ "$changedHost" != "N" ] && [ "$changedHost" != " " ];
-      do
-      printf "Wrong input: ${RED}$server${NC}. Please choose [${GREEN}Y${NC}|${RED}N${NC}]:"
-      read server
-    done
-    if [ "$changedHost" == "Y" ];
+    print_quest "Have you changed the hostname of the inital server?"
+    get_validate_answer "Have you changed the hostname of the inital server?"
+    if [ $? != 0 ];
     then
-      printf "Please enter the hostname of the initial server"
-      read HOSTNAME
+      read hostname
     fi
   fi
+else
+  apt-get install git python3-pip python3-venv pulseaudio pulseaudio-utils -y
+
+  # Bluetooth set rights
+  usermod -a -G bluetooth pi
+
+  # set-up python
+  python3 -m pip install --user virtualenv
+  python3 -m venv venv
+  source venv/bin/activate
+
+  # Downlaoding and installing python libs
+  wget -q https://raw.githubusercontent.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/main/requirements.txt
+  pip3 install -r requirements.txt
 fi
-printf "Installing MRAS-Client"
 
 # mkdir MRAS
 # cd MRAS
