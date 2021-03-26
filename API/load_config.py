@@ -89,8 +89,8 @@ class ClientClient:
 
 def err_handling(error, api_path):
     if type(error) is TypeError or type(error) is KeyError:
-        print("Please provide all required fields for: " + api_path + " in the .env.yml")
-        print("Error loading config file. Please provide .env.yml in the project root folder.")
+        print("Please provide all required fields for: " + api_path + " in the config.yml")
+        print("Error loading config file. Please provide config.yml in the project root folder.")
         current_dir = os.getcwd()
         if platform.system() == 'Linux':
             print("The root folder is: " + current_dir[0:current_dir.rfind("/") + 1])

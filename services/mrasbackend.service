@@ -1,0 +1,11 @@
+[Unit]
+Description=MRAS Backend API
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+ExecStart=/usr/bin/env /home/pi/mras/mrasapi/mras-api-arm
+
+[Install]
+WantedBy=multi-user.target

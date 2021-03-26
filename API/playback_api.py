@@ -44,6 +44,10 @@ class Playback(Resource):
             return {'code': status_codes.multiple_param_missing, "message": "Please provide all necessary data " +
                                                                             str(params_present).replace("'", "")}, status_codes.bad_request
 
+        dbres = DB.db.search(query.name == "is_listening")
+        if len(dbres) > 0 and dbres[0]['is_listening']:
+            return {'code': status_codes.is_currently_listening, 'message': "The device is currently listening"}
+
         if len(data['device_ips']) != 0:
             print(data["device_ips"])
             multicast = data['multicast_ip']
@@ -91,6 +95,8 @@ class Playback(Resource):
                     'error': {'code': status_codes.server_error_at_client, 'message': 'Internal Server Error at IPs'},
                     'dead_ips': ips
                 }
+
+            DB.db.update({'is_listening': True})
 
             # starting the bluetooth interface and looking for errors
             if data['method'] == "bluetooth":

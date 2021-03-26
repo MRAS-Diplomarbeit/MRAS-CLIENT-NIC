@@ -1,0 +1,11 @@
+[Unit]
+Description=MRAS Website
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=/usr/bin/env npx serve -l 80 /temp/web-build
+
+[Install]
+WantedBy=multi-user.target

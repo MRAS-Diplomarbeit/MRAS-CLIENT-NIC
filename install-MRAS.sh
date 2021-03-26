@@ -1,4 +1,3 @@
-#!/bin/bash
 if [ "$EUID" -ne 0 ]
   then echo "Please run as sudo"
   exit
@@ -13,8 +12,8 @@ HOSTNAME='mrasserver'
 
 parse_yaml () {
   while read line; do
-    echo $line
-  done < .env.yml
+    echo $line | grep $1 | cut -d' ' -f 2
+  done < config.yml
 }
 
 print_quest () {
@@ -27,7 +26,7 @@ to_lower_case() {
 }
 
 get_validate_answer(){
-  local temp='hee'
+  local temp='init'
   read temp
   temp=$(to_lower_case $temp)
   while [ "$temp" != "y" ] && [ "$temp" != "n" ] && [ "$temp" != "" ];
@@ -47,14 +46,71 @@ clear
 # Testing if this is the first MRAS-Device (Default settings)
 if ! ping -c 1 -w 2 $HOSTNAME > /dev/null;
 then
-  printf "Is this the first MRAS-Device in your Network? [${GREEN}Y${NC}|${RED}N${NC}](default: ${YELLOW}Y${NC}):"
-  read server
+  #printf "Is this the first MRAS-Device in your Network? [${GREEN}Y${NC}|${RED}N${NC}](default: ${YELLOW}Y${NC}):"
+  #read server
 
-  while [ "$server" != "Y" ] && [ "$server" != "N" ] && [ "$server" != " " ];
-  do
-    printf "Wrong input: ${RED}$server${NC}. Please choose [${GREEN}Y${NC}|${RED}N${NC}]:"
-    read server
-  done
+  #while [ "$server" != "Y" ] && [ "$server" != "N" ] && [ "$server" != " " ];
+  #do
+  #  printf "Wrong input: ${RED}$server${NC}. Please choose [${GREEN}Y${NC}|${RED}N${NC}]:"
+  #  read server
+  #done
+
+  print_quest "Is this the first MRAS-Device in your Network?"
+  get_validate_answer "Is this the first MRAS-Device in your Network?"
+
+  if [ $? != 0 ];
+  then
+    echo Installing Server components
+    curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+    apt-get install wamerican redis-server mariadb-server nodejs wget -y
+    npm install npx
+
+    # Change the hostname?
+    print_quest "Do you want to automatically change the hostname of this device to automate further installations of Clients?"
+    get_validate_answer "Do you want to automatically change the hostname of this device to automate further installations of Clients?"
+    if [ $? != 0 ];
+    then
+      hostname $HOSTNAME
+    fi
+
+    mkdir mras
+    cd mras
+    
+    wget -q https://raw.githubusercontent.com/MRAS-Diplomarbeit/MRAS-API-SPEC/main/config/config.yml
+
+    # auto-generating tokens
+    accesstoken=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+    refreshtoken=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+
+    # asking/ auto-genrating DB user
+    print_quest "Do you want to name the mariaDB User?"
+    get_validate_answer "Do you want to name the mariaDB User?"
+    if [ $? != 0 ];
+    then
+      print "Enter the username"
+      read mariaUser
+      print "Enter the password"
+      read -s mariaPW
+    else
+      mariaUser="mras"
+      mariaPW=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+    fi
+
+    # replacing placeholders in config file
+    sed -i "s|\[\[ACCESSTOKEN\]\]|$accesstoken|g" config.yml
+    sed -i "s|\[\[REFRESHTOKEN\]\]|$refreshtoken|g" config.yml
+    sed -i "s|\[\[DBUSER\]\]|$mariaUser|g" config.yml
+    sed -i "s|\[\[DBPASSWORD\]\]|$mariaPW|g" config.yml
+
+    # Setting-up MariaDB
+    mysql -e "CREATE USER $mariaUser@localhost IDENTIFIED BY '$mariaPW'"
+    dbname=$(parse_yaml "dbname")
+    mysql -e "CREATE SCHEMA $dbname"
+    mysql -e "GRANT ALL PRIVILEGES ON database_name.$dbname TO $mariaUser@localhost"
+
+    # downlaod website wget GITHUB_RELEASE
+    # 
+  fi
 
   # test if it is the first server
   if [ "$server" != "N" ];

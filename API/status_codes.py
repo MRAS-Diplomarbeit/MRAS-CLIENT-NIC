@@ -16,3 +16,4 @@ err_reading_log = 1107
 already_on_interface = 1108
 no_bluetooth_connection = 1109
 interface_not_found = 1110
+is_currently_listening = 1111
