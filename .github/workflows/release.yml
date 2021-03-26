@@ -9,8 +9,9 @@ jobs:
       - uses: actions/checkout@master
       - name: "Build & test"
         run: |
-          echo "done!"
-          cd /home/runner/work/MRAS-CLIENT-NIC/
+          pwd
+          ls -la
+          cd /home/runner/work/MRAS-CLIENT-NIC/MRAS-CLIENT-NIC
           rm -rf API/tests/
           tar -zcvf api.tar.gz API/ 
       - uses: "marvinpinto/action-automatic-releases@latest"
