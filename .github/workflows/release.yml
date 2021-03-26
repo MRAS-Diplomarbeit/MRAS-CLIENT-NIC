@@ -1,5 +1,10 @@
 name: "release"
-on: push
+on: 
+  workflow_run:
+    workflows:
+      - Code coverage backend-client
+    types:
+      - completed
 jobs:
   release:
     name: "Release"
@@ -7,7 +12,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
-      - name: "Build & test"
+      - name: "remove tests and zip"
         run: |
           pwd
           ls -la
@@ -19,6 +24,6 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
           prerelease: false
-          title: "Development Build"
+          title: "Backend API Release"
           files: |
             *.tar.gz
