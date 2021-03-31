@@ -119,6 +119,9 @@ then
     fi
   fi
 else
+  mkdir mrasclient
+  cd mrasclient
+  
   apt-get install git python3-pip python3-venv pulseaudio pulseaudio-utils -y
 
   # Bluetooth set rights
@@ -132,7 +135,11 @@ else
   # Downlaoding and installing python libs
   wget -q https://raw.githubusercontent.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/main/requirements.txt
   pip3 install -r requirements.txt
-fi
+
+  #Downloading Backend-Client API
+  wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/latest/download/api.tar.gz
+  tar -zxvf api.tar.gz
+
 
 # mkdir MRAS
 # cd MRAS

@@ -18,3 +18,5 @@ class Volume(Resource):
 
         sink_input_id = pulse.get_sink_input_id(constants.loopback_driver)
         pulse.change_volume_sink_input(sink_input_id, 0)
+
+        # TODO: delay

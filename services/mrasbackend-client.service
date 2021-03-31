@@ -1,0 +1,12 @@
+[Unit]
+Description=MRAS Backend-Client API
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+ExecStartPre=source /home/pi/mras/mrasclient/venv/bin/activate
+ExecStart=python3 /home/pi/mras/mrasclient/API/api.py
+
+[Install]
+WantedBy=multi-user.target

@@ -6,21 +6,21 @@ class SinkNotLoadedException(Exception):
     pass
 
 
-class NoSourcesFoundException(Exception):
+class NoSourcesFoundException(ElementNotFoundException):
     pass
 
 
-class NoSinksFoundException(Exception):
+class NoSinksFoundException(ElementNotFoundException):
     pass
 
 
-class NoModulesFoundException(Exception):
+class NoModulesFoundException(ElementNotFoundException):
     pass
 
 
-class NoCardsFoundException(Exception):
+class NoCardsFoundException(ElementNotFoundException):
     pass
 
 
-class NoSinkInputsFoundException(Exception):
+class NoSinkInputsFoundException(ElementNotFoundException):
     pass

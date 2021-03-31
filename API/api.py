@@ -6,6 +6,7 @@ import constants
 import log_api
 import playback_api
 import method_api
+import controll_api
 
 app = Flask(__name__)
 api = Api(app)
@@ -20,6 +21,7 @@ api.add_resource(playback_api.Playback, conf_client_backend.path_playback)
 api.add_resource(log_api.AllLogs, '/api/v1/log')
 api.add_resource(log_api.LogsToLine, '/api/v1/log/<int:lines>')
 api.add_resource(method_api.Method, conf_client_backend.path_method)
+api.add_resource(controll_api.Volume, '/api/v1/volume')
 
 
 if __name__ == '__main__':

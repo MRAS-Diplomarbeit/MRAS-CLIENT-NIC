@@ -14,8 +14,6 @@ jobs:
       - uses: actions/checkout@master
       - name: "remove tests and zip"
         run: |
-          pwd
-          ls -la
           cd /home/runner/work/MRAS-CLIENT-NIC/MRAS-CLIENT-NIC
           rm -rf API/tests/
           tar -zcvf api.tar.gz API/ 

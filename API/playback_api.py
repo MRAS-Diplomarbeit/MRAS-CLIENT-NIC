@@ -108,10 +108,13 @@ class Playback(Resource):
                 log.append(logger.log("Started bluetooth listening"))
 
                 # get the number of the source from the bluetooth audio and start the audio transmission
-                source_id = pulse.get_source_number(constants.bluetooth_driver)
+
+                source_id = None
                 while source_id is None:
-                    time.sleep(2)
-                    source_id = pulse.get_source_number(constants.bluetooth_driver)
+                    try:
+                        source_id = pulse.get_source_number(constants.bluetooth_driver)
+                    except ElementNotFoundException:
+                        time.sleep(2)
 
                 # send to all individual ips
                 # for ip in data['device_ips']:
