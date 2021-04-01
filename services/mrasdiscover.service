@@ -1,0 +1,11 @@
+[Unit]
+Description=MRAS Backend-Client API
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+ExecStart=python3 /home/pi/mras/mrasclient/discover.py [[HOSTNAME]]
+
+[Install]
+WantedBy=multi-user.target

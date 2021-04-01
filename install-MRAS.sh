@@ -136,6 +136,10 @@ pip3 install -r requirements.txt
 wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/latest/download/api.tar.gz
 tar -zxvf api.tar.gz
 
+#Downloading discover and discover service
+wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/download/latest/discover.py
+wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/download/latest/mrasdiscover.service
+sed -i "s|\[\[HOSTNAME\]\]|$hostname|g" mrasdiscover.service
 
 # mkdir MRAS
 # cd MRAS

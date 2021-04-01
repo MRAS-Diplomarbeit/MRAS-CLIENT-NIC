@@ -12,11 +12,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
-      - name: "remove tests and zip"
+      - name: "remove tests and zip API"
         run: |
           cd /home/runner/work/MRAS-CLIENT-NIC/MRAS-CLIENT-NIC
           rm -rf API/tests/
-          tar -zcvf api.tar.gz API/ 
+          tar -zcvf api.tar.gz API/
+      - name: "Zip Services"
+        run: |
+          cd /home/runner/work/MRAS-CLIENT-NIC/MRAS-CLIENT-NIC
+          mv services/mrasdiscover.service mrasdiscover.service
+          tar -zcvf Backend-Services.tar.gz services/ 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -26,3 +31,4 @@ jobs:
           files: |
             *.tar.gz
             discover.py
+            mrasdiscover.service
