@@ -17,3 +17,4 @@ already_on_interface = 1108
 no_bluetooth_connection = 1109
 interface_not_found = 1110
 is_currently_listening = 1111
+no_delay_set = 1112

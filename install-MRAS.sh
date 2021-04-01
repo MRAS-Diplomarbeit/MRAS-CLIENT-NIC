@@ -78,9 +78,9 @@ then
     get_validate_answer "Do you want to name the mariaDB User?"
     if [ $? != 0 ];
     then
-      print "Enter the username"
+      echo Enter the username
       read mariaUser
-      print "Enter the password"
+      echo Enter the password
       read -s mariaPW
     else
       mariaUser="mras"
@@ -116,29 +116,25 @@ then
     if [ $? != 0 ];
     then
       read hostname
+      # TODO: set hostname for /discover
     fi
   fi
-else
-  mkdir mrasclient
-  cd mrasclient
-  
-  apt-get install git python3-pip python3-venv pulseaudio pulseaudio-utils -y
+fi
+mkdir mrasclient
+cd mrasclient
 
-  # Bluetooth set rights
-  usermod -a -G bluetooth pi
+apt-get install python3 python3-pip python3-venv pulseaudio pulseaudio-utils pulseaudio-module-bluetooth bluez-tools -y
+# setup Bluetooth
+usermod -a -G bluetooth pi
+su root -c 'echo Class = 0x41c >> /etc/bluetooth/main.conf'
+su root -c 'echo DiscoverableTimeout = 0 >> /etc/bluetooth/main.conf'
 
-  # set-up python
-  python3 -m pip install --user virtualenv
-  python3 -m venv venv
-  source venv/bin/activate
-
-  # Downlaoding and installing python libs
-  wget -q https://raw.githubusercontent.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/main/requirements.txt
-  pip3 install -r requirements.txt
-
-  #Downloading Backend-Client API
-  wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/latest/download/api.tar.gz
-  tar -zxvf api.tar.gz
+# Downlaoding and installing python libs
+wget -q https://raw.githubusercontent.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/main/requirements.txt
+pip3 install -r requirements.txt
+#Downloading Backend-Client API
+wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/latest/download/api.tar.gz
+tar -zxvf api.tar.gz
 
 
 # mkdir MRAS

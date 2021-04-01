@@ -14,14 +14,12 @@ import logger
 import constants
 import helper
 
-
 conf_client_backend = load_config.ClientBackend(constants.confLoc)
 conf_client_client = load_config.ClientClient(constants.confLoc)
 conf_logfile = load_config.Client(constants.confLoc)
 
 DB = Access()
 query = Query()
-
 
 if conf_client_backend.error is not None or conf_client_client.error is not None:
     if conf_client_backend.error is not None:
@@ -39,13 +37,15 @@ class Playback(Resource):
         params_present = helper.data_available(data, ["method", "displayname", "device_ips", "multicast_ip"])
         if len(params_present) == 1:
             return {'code': status_codes.single_param_missing, "message": "Please provide all necessary data " +
-                                                                          str(params_present).replace("'", "")}, status_codes.bad_request
+                                                                          str(params_present).replace("'",
+                                                                                                      "")}, status_codes.bad_request
         elif len(params_present) > 1:
             return {'code': status_codes.multiple_param_missing, "message": "Please provide all necessary data " +
-                                                                            str(params_present).replace("'", "")}, status_codes.bad_request
+                                                                            str(params_present).replace("'",
+                                                                                                        "")}, status_codes.bad_request
 
         dbres = DB.db.search(query.name == "is_listening")
-        if len(dbres) > 0 and dbres[0]['is_listening']:
+        if len(dbres) > 0 and dbres[0]['value']:
             return {'code': status_codes.is_currently_listening, 'message': "The device is currently listening"}
 
         if len(data['device_ips']) != 0:
@@ -53,10 +53,8 @@ class Playback(Resource):
             multicast = data['multicast_ip']
             err_list = []
             dead_ips = []
-
-            # TODO: send error as response to backend
-            # TODO: activate Bluetooth, trx multicast server and send GET to Client-Client\listen with multicast_ip
             urls = []
+
             log.append(logger.log("Starting listening session on: " + multicast + " with the interface: " + data[
                 'method'] + " on the devices:"))
             # Create parameter for get requests (Client-Client)
@@ -77,7 +75,6 @@ class Playback(Resource):
                 elif response.status_code != status_codes.ok:
                     err_list.append({'code': response.status_code, 'message': 'Server probably not running'})
                     dead_ips.append(data['device_ips'][num])
-                # TODO: ADD tests for status_code 400
 
             print(dead_ips)
             print(err_list)
@@ -96,7 +93,7 @@ class Playback(Resource):
                     'dead_ips': ips
                 }
 
-            DB.db.update({'is_listening': True})
+            DB.db.upsert({'name': 'is_listening', 'value': True}, query.name == 'is_listening')
 
             # starting the bluetooth interface and looking for errors
             if data['method'] == "bluetooth":
@@ -114,7 +111,7 @@ class Playback(Resource):
                     try:
                         source_id = pulse.get_source_number(constants.bluetooth_driver)
                     except ElementNotFoundException:
-                        time.sleep(2)
+                        time.sleep(1)
 
                 # send to all individual ips
                 # for ip in data['device_ips']:
@@ -140,20 +137,22 @@ class Playback(Resource):
                     sink_input_id = None
                     while sink_input_id is None:
                         try:
+                            inter = DB.db.search(query.name == constants.db_interface_name)
                             pulse.move_sink_input(pulse.get_sink_input_id(constants.rtp_recv_driver),
-                                                  pulse.get_card_id(DB.search(query.name == constants.db_interface_name)))
+                                                  pulse.get_card_id(inter['value']))
                         except SinkNotLoadedException:
                             print("Waiting on pulseaudio")
 
                 except ElementNotFoundException as err:
                     logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
-                    return{'code': status_codes.sink_not_found, 'message': str(err)}, 400
+                    return {'code': status_codes.sink_not_found, 'message': str(err)}, 400
                 logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
             else:
                 return {'code': status_codes.not_implemented, 'message': data['method'] +
                                                                          " is not implemented, only bluetooth"}
         else:
             # Playing audio locally
+            DB.db.upsert({'name': 'is_listening', 'value': True}, query.name == 'is_listening')
             ret = bluetooth.set_discoverable(False, data['displayname'])
             if not ret:
                 log.append(logger.log("Error starting Bluetooth"))
@@ -161,18 +160,23 @@ class Playback(Resource):
                 return ret, 500
             else:
                 log.append(logger.log("Started bluetooth listening"))
-                source_id = pulse.get_source_number(constants.bluetooth_driver)
+                source_id = None
                 while source_id is None:
                     time.sleep(0.5)
-                    source_id = pulse.get_source_number(constants.bluetooth_driver)
+                    try:
+                        source_id = pulse.get_source_number(constants.bluetooth_driver)
+                    except ElementNotFoundException:
+                        print("Wainting on connection")
                 try:
+                    inter = DB.db.search(query.name == constants.db_interface_name)
                     pulse.move_sink_input(pulse.get_sink_input_id(constants.loopback_driver),
-                                      pulse.get_card_id(data['method']))
+                                          pulse.get_card_id(inter[0]['value']))
+                    # TODO: replace volume with DB Volume
                     pulse.change_volume_sink_input(pulse.get_sink_input_id(constants.loopback_driver), 100)
                 except ElementNotFoundException as err:
                     print(err)
                     logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
-                    return{'code': status_codes.sink_not_found, 'message': str(err)}, 400
+                    return {'code': status_codes.sink_not_found, 'message': str(err)}, 400
                 logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
 
     def delete(self):
@@ -181,8 +185,9 @@ class Playback(Resource):
         params_present = helper.data_available(data, ['ips'])
 
         if len(params_present) != 0:
-            return {'code': status_codes.single_param_missing,"message": "Please provide all necessary data " +
-                                                                         str(params_present).replace("'", "")}, status_codes.bad_request
+            return {'code': status_codes.single_param_missing, "message": "Please provide all necessary data " +
+                                                                          str(params_present).replace("'",
+                                                                                                      "")}, status_codes.bad_request
 
         if len(data['ips']) > 1:
             urls = []
@@ -209,6 +214,7 @@ class Playback(Resource):
             pulse.stop_incoming_stream()
 
         bluetooth.set_discoverable(True, "")
+        DB.db.upsert({'name': 'is_listening', 'value': False}, query.name == 'is_listening')
         log.append(logger.log("Stopped bluetooth listening"))
-        print("Log: "+str(logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)))
+        print("Log: " + str(logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)))
         return

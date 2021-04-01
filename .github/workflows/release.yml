@@ -25,3 +25,4 @@ jobs:
           title: "Backend API Release"
           files: |
             *.tar.gz
+            discover.py

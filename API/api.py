@@ -22,6 +22,7 @@ api.add_resource(log_api.AllLogs, '/api/v1/log')
 api.add_resource(log_api.LogsToLine, '/api/v1/log/<int:lines>')
 api.add_resource(method_api.Method, conf_client_backend.path_method)
 api.add_resource(controll_api.Volume, '/api/v1/volume')
+api.add_resource(controll_api.Delay, '/api/v1/delay')
 
 
 if __name__ == '__main__':

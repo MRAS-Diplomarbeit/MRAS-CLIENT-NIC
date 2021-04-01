@@ -23,41 +23,22 @@ class Client:
     def log_name(self):
         return self._log_name
 
-    @log_name.setter
-    def log_name(self, value):
-        # TODO: write to yaml file
-        pass
-
     @property
     def log_path(self):
         return self._log_path
-
-    @log_path.setter
-    def log_path(self, value):
-        # TODO. write to yaml
-        pass
 
     @property
     def max_size(self):
         # Load log size in MB and convert to KB and Byte
         return self._max_size * 1024 * 1024
 
-    @max_size.setter
-    def max_size(self, value):
-        self._max_size = value
-
     @property
     def old_logs(self):
         return self._old_logs
 
-    @old_logs.setter
-    def old_logs(self, value):
-        self._old_logs = value
-
     @property
     def update_port(self):
         return self._update_port
-
 
 
 class ClientBackend:

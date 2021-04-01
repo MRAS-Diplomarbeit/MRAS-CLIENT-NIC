@@ -22,7 +22,6 @@ def req_listen_get(PROT, IP, PATH, DATA):
         return {"ERROR": "Connection Error occurred. IP:" + IP + " is unavailable"}
     except requests.exceptions.InvalidURL:
         print("[ERROR]-Invalid url: " + URL)
-        # TODO: bad request 400
 
 
 def req_listen_get_a(PROT, IP, PATH, DATA):
@@ -47,7 +46,6 @@ def req_listen_get_a(PROT, IP, PATH, DATA):
     except requests.exceptions.InvalidURL as e:
         print(e)
         print("[ERROR]-Invalid url: " + URL)
-        # TODO: bad request 400
 
 
 async def aio_listen_get(PROT, IP, PATH, DATA):

@@ -1,5 +1,6 @@
 from typing import overload
-from excep import ElementNotFoundException, SinkNotLoadedException, NoSourcesFoundException, NoSinksFoundException, NoModulesFoundException, NoCardsFoundException, NoSinkInputsFoundException
+from excep import ElementNotFoundException, SinkNotLoadedException, NoSourcesFoundException, NoSinksFoundException, \
+    NoModulesFoundException, NoCardsFoundException, NoSinkInputsFoundException
 import os
 import status_codes
 
@@ -92,9 +93,6 @@ def get_sink(name: str) -> dict:
                                    name + ' in sinks: ' + str(get_sink_names()))
 
 
-# TODO: Change return type to raise exception
-
-
 # returns an list of names from the sinks
 def get_sink_names() -> [str]:
     sinks = get_sinks()
@@ -133,8 +131,9 @@ def get_source_number(driver: str) -> int:
 def get_source_id(name: str) -> int:
     sources = get_sources()
     for source in sources:
-        if 'alsa.card_name' in sources[source] and sources[source]['alsa.card_name'] == name or sources[source]['Name'] == name:
-            return int(source[source.find('#')+1:])
+        if 'alsa.card_name' in sources[source] and sources[source]['alsa.card_name'] == name or sources[source][
+            'Name'] == name:
+            return int(source[source.find('#') + 1:])
     raise ElementNotFoundException
 
 
@@ -153,7 +152,7 @@ def get_card_id(name: str) -> int:
     cards = get_cards()
     for card in cards:
         if 'alsa.card_name' in cards[card] and cards[card]['alsa.card_name'] == name or cards[card]['Name'] == name:
-            return int(card[card.find('#')+1:])
+            return int(card[card.find('#') + 1:])
     raise NoCardsFoundException
 
 
@@ -186,7 +185,7 @@ def remove_sink(name) -> bool:
 def move_sink_input(sink_id: int, card_id: int) -> None:
     if sink_id is None or card_id is None:
         print("Error")
-        raise ElementNotFoundException("Sink_id: "+str(sink_id)+", card_id:"+str(card_id))
+        raise ElementNotFoundException("Sink_id: " + str(sink_id) + ", card_id:" + str(card_id))
     os.system('pactl move-sink-input ' + str(sink_id) + ' ' + str(card_id))
 
 
@@ -228,7 +227,4 @@ def unload_module(module: str) -> bool:
         return False
     else:
         return True
-
-# TODO: list modules, get module number of sending streams
-
 

@@ -24,8 +24,8 @@ class Method(Resource):
 
         DB = Access()
         res = Query()
-        data = DB.db.search((res.name == constants.db_interface_name) & (res.value == data['method']))
-        if len(data) > 0:
+        dbdata = DB.db.search((res.name == constants.db_interface_name) & (res.value == data['method']))
+        if len(dbdata) > 0:
             return {'code': status_codes.already_on_interface, 'message': "Interface is already in use"}
 
         # try to switch audio interface on current session
@@ -39,13 +39,11 @@ class Method(Resource):
         except NoCardsFoundException:
             return {'code': status_codes.interface_not_found, 'message': "The interface: " + data['method']
                                                                          + " is not available"}
-        except ElementNotFoundException:
-            return {}, 400  # Should not be called, NoSinkInputsFoundException should be raised first
 
         # test if card is valid and changing audio output device, while no bluetooth device is connected
         try:
             pulse_control.get_card_id(data['method'])
-            DB.db.update({"name": constants.db_interface_name, "value": data['method']})
+            DB.db.upsert({"name": constants.db_interface_name, "value": data['method']}, res.name == constants.db_interface_name)
         except NoCardsFoundException:
             return {'code': status_codes.interface_not_found, 'message': "The interface: " + data['method']
                                                                          + " is not available"}
