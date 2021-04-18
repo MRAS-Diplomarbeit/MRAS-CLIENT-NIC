@@ -44,6 +44,7 @@ get_validate_answer(){
 
 
 clear
+mkdir mras
 # Testing if this is the first MRAS-Device (Default settings)
 if ! ping -c 1 -w 2 $HOSTNAME > /dev/null;
 then
@@ -66,7 +67,7 @@ then
       echo hostname changed
     fi
 
-    mkdir mras
+    
     cd mras
     
     wget -q https://raw.githubusercontent.com/MRAS-Diplomarbeit/MRAS-API-SPEC/main/config/config.yml
