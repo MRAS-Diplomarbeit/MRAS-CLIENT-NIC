@@ -62,7 +62,7 @@ then
     get_validate_answer "Do you want to automatically change the hostname of this device to automate further installations of Clients?"
     if [ $? != 0 ];
     then
-      sudo hostname $HOSTNAME
+      sudo hostname -b $HOSTNAME
       echo hostname changed
     fi
 
@@ -123,7 +123,7 @@ then
     get_validate_answer "Have you changed the hostname of the inital server?"
     if [ $? != 0 ];
     then
-      read hostname
+      read HOSTNAME
       # TODO: set hostname for /discover
     fi
   fi
@@ -147,7 +147,7 @@ tar -zxvf api.tar.gz
 #Downloading discover and discover service and starting it
 wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/download/latest/discover.py
 wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/download/latest/mrasdiscover.service
-sed -i "s|\[\[HOSTNAME\]\]|$hostname|g" mrasdiscover.service
+sed -i "s|\[\[HOSTNAME\]\]|$HOSTNAME|g" mrasdiscover.service
 sudo mv mrasdiscover.service /etc/systemd/system/mrasdiscover.service
 sudo systemctl start mrasdiscover
 
