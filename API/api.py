@@ -7,10 +7,10 @@ import log_api
 import playback_api
 import method_api
 import controll_api
+import sys
 
 app = Flask(__name__)
 api = Api(app)
-
 
 conf_client_backend = load_config.ClientBackend(constants.confLoc)
 
@@ -28,4 +28,5 @@ api.add_resource(controll_api.Delay, '/api/v1/delay')
 if __name__ == '__main__':
     from gevent import monkey
     monkey.patch_all()
+
     app.run(host="0.0.0.0", port=conf_client_backend.port, debug=True, threaded=True)

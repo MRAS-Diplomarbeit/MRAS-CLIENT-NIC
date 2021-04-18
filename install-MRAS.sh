@@ -1,7 +1,7 @@
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as sudo"
-  exit
-fi
+# if [ "$EUID" -ne 0 ]
+#   then echo "Please run as sudo"
+#   exit
+# fi
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -33,6 +33,7 @@ get_validate_answer(){
   do
     print_quest "Please enter a valid option! $1"
     read temp
+    temp=$(to_lower_case $temp)
   done
   if [ "$temp" == 'y' ];
   then
@@ -54,7 +55,7 @@ then
   then
     echo Installing Server components
     curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-    apt-get install wamerican redis-server mariadb-server nodejs wget -y
+    sudo apt-get install wamerican redis-server mariadb-server nodejs wget -y
 
     # Change the hostname?
     print_quest "Do you want to automatically change the hostname of this device to automate further installations of Clients?"
@@ -62,6 +63,7 @@ then
     if [ $? != 0 ];
     then
       hostname $HOSTNAME
+      echo hostname changed
     fi
 
     mkdir mras
@@ -94,21 +96,25 @@ then
     sed -i "s|\[\[DBPASSWORD\]\]|$mariaPW|g" config.yml
 
     # Setting-up MariaDB
-    mysql -e "CREATE USER $mariaUser@localhost IDENTIFIED BY '$mariaPW'"
+    sudo mysql -e "CREATE USER $mariaUser@localhost IDENTIFIED BY '$mariaPW'"
     dbname=$(parse_yaml "dbname")
-    mysql -e "CREATE SCHEMA $dbname"
-    mysql -e "GRANT ALL PRIVILEGES ON database_name.$dbname TO $mariaUser@localhost"
+    sudo mysql -e "CREATE SCHEMA ${dbname//\"}"
+    sudo mysql -e "GRANT ALL PRIVILEGES ON ${dbname//\"}.* TO $mariaUser@localhost"
+    sudo mysql -e "flush privileges"
 
     echo installing website
     wget -q https://github.com/MRAS-Diplomarbeit/MRAS_FRONTEND/releases/latest/download/web-build.tar
     tar -xvf web-build.tar
-    # TODO: Copy service
 
-    mkdir mrasapi
-    cd mrasapi
-    wget -q https://github.com/MRAS-Diplomarbeit/MRAS-API/releases/download/v0.0.1/mras-api-x64
-    chmod +x mras-api-x64
-    cd ..
+    wget -q https://github.com/MRAS-Diplomarbeit/MRAS-API/releases/download/v0.0.1/mras-api-arm
+    sudo chmod +x mras-api-arm
+
+    wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/download/latest/Backend-Services.tar.gz
+    tar -xvf Backend-Services.tar.gz
+    sudo cp services/mrasbackend.service /etc/systemd/system/
+    sudo cp services/mrasweb.service /etc/systemd/system/
+    sudo systemctl start mrasbackend
+    sudo systemctl start mrasweb
 
   else
     print_quest "Have you changed the hostname of the inital server?"
@@ -123,11 +129,11 @@ fi
 mkdir mrasclient
 cd mrasclient
 
-apt-get install python3 python3-pip python3-venv pulseaudio pulseaudio-utils pulseaudio-module-bluetooth bluez-tools -y
+sudo apt-get install python3 python3-pip python3-venv pulseaudio pulseaudio-utils pulseaudio-module-bluetooth bluez-tools -y
 # setup Bluetooth
-usermod -a -G bluetooth pi
-su root -c 'echo Class = 0x41c >> /etc/bluetooth/main.conf'
-su root -c 'echo DiscoverableTimeout = 0 >> /etc/bluetooth/main.conf'
+sudo usermod -a -G bluetooth pi
+echo Class = 0x41c | sudo tee -a /etc/bluetooth/main.conf
+echo DiscoverableTimeout = 0 | sudo tee -a /etc/bluetooth/main.conf
 
 # Downlaoding and installing python libs
 wget -q https://raw.githubusercontent.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/main/requirements.txt
@@ -140,8 +146,8 @@ tar -zxvf api.tar.gz
 wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/download/latest/discover.py
 wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/download/latest/mrasdiscover.service
 sed -i "s|\[\[HOSTNAME\]\]|$hostname|g" mrasdiscover.service
-mv mrasdiscover.service /etc/systemd/system/mrasdiscover.service
-systemctl start mrasdiscover
+sudo mv mrasdiscover.service /etc/systemd/system/mrasdiscover.service
+sudo systemctl start mrasdiscover
 
 # mkdir MRAS
 # cd MRAS

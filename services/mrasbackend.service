@@ -5,7 +5,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=pi
-ExecStart=/usr/bin/env /home/pi/mras/mrasapi/mras-api-arm
+ExecStart=/home/pi/mras/mras-api-arm -c /home/pi/mras/
 
 [Install]
 WantedBy=multi-user.target
