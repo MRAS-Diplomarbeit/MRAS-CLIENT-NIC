@@ -45,6 +45,7 @@ get_validate_answer(){
 
 clear
 mkdir mras
+cd mras
 # Testing if this is the first MRAS-Device (Default settings)
 if ! ping -c 1 -w 2 $HOSTNAME > /dev/null;
 then
@@ -68,7 +69,7 @@ then
     fi
 
     
-    cd mras
+    
     
     wget -q https://raw.githubusercontent.com/MRAS-Diplomarbeit/MRAS-API-SPEC/main/config/config.yml
 
@@ -102,6 +103,7 @@ then
     sudo mysql -e "CREATE SCHEMA ${dbname//\"}"
     sudo mysql -e "GRANT ALL PRIVILEGES ON ${dbname//\"}.* TO $mariaUser@localhost"
     sudo mysql -e "flush privileges"
+    sudo mysql -e "SET GLOBAL event_scheduler = ON"
 
     echo installing website
     wget -q https://github.com/MRAS-Diplomarbeit/MRAS_FRONTEND/releases/latest/download/web-build.tar
