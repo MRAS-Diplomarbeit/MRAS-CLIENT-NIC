@@ -160,8 +160,12 @@ sudo mv mrasdiscover.service /etc/systemd/system/mrasdiscover.service
 sudo systemctl enable bt-agent
 sudo systemctl start mrasdiscover
 
+wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/download/latest/startspeaker.sh
+sudo chmod +x startspeaker.sh
+
 echo Please reboot!
 echo You might need to change the hostname manually to $HOSTNAME if the webpage/app are not working. Use sudo raspi-config to change the hostname
+echo To Start the Speaker software run /home/pi/mras/startspeaker.sh
 
 # mkdir MRAS
 # cd MRAS

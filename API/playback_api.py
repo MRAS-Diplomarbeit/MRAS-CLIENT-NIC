@@ -172,7 +172,7 @@ class Playback(Resource):
                     inter = DB.db.search(query.name == constants.db_interface_name)
                     pulse.move_sink_input(pulse.get_sink_input_id(constants.loopback_driver),
                                           pulse.get_card_id(inter[0]['value']))
-                    # TODO: replace volume with DB Volume
+
                     pulse.change_volume_sink_input(pulse.get_sink_input_id(constants.loopback_driver), 100)
                 except ElementNotFoundException as err:
                     print(err)

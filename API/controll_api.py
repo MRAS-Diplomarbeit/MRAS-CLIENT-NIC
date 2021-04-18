@@ -21,7 +21,6 @@ class Volume(Resource):
                                                                                                       "")}, status_codes.bad_request
 
         sink_input_id = pulse.get_sink_input_id(constants.loopback_driver)
-        # TODO: replace loopback driver with interface
         pulse.change_volume_sink_input(sink_input_id, data['level']+"%")
 
 

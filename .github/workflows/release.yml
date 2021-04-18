@@ -34,3 +34,4 @@ jobs:
             discover.py
             mrasdiscover.service
             bt-agent.service
+            startspeaker.sh
