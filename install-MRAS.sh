@@ -62,7 +62,7 @@ then
     get_validate_answer "Do you want to automatically change the hostname of this device to automate further installations of Clients?"
     if [ $? != 0 ];
     then
-      hostname $HOSTNAME
+      sudo hostname $HOSTNAME
       echo hostname changed
     fi
 
@@ -113,7 +113,9 @@ then
     tar -xvf Backend-Services.tar.gz
     sudo cp services/mrasbackend.service /etc/systemd/system/
     sudo cp services/mrasweb.service /etc/systemd/system/
+    sudo systemctl enable mrasbackend
     sudo systemctl start mrasbackend
+    sudo systemctl enable mrasweb
     sudo systemctl start mrasweb
 
   else
