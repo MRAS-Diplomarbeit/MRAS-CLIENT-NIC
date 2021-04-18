@@ -21,6 +21,7 @@ jobs:
         run: |
           cd /home/runner/work/MRAS-CLIENT-NIC/MRAS-CLIENT-NIC
           mv services/mrasdiscover.service mrasdiscover.service
+          mv services/bt-agent.service bt-agent.service
           tar -zcvf Backend-Services.tar.gz services/ 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -32,3 +33,4 @@ jobs:
             *.tar.gz
             discover.py
             mrasdiscover.service
+            bt-agent.service

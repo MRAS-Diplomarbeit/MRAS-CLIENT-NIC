@@ -131,6 +131,7 @@ then
     fi
   fi
 fi
+wget -q https://raw.githubusercontent.com/MRAS-Diplomarbeit/MRAS-API-SPEC/main/config/config.yml
 mkdir mrasclient
 cd mrasclient
 
@@ -139,6 +140,10 @@ sudo apt-get install python3 python3-pip python3-venv pulseaudio pulseaudio-util
 sudo usermod -a -G bluetooth pi
 echo Class = 0x41c | sudo tee -a /etc/bluetooth/main.conf
 echo DiscoverableTimeout = 0 | sudo tee -a /etc/bluetooth/main.conf
+wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/download/latest/bt-agent.service
+sudo mv bt-agent.service /etc/systemd/system/bt-agent.service
+sudo systemctl enable bt-agent
+sudo systemctl start bt-agent
 
 # Downlaoding and installing python libs
 wget -q https://raw.githubusercontent.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/main/requirements.txt
@@ -152,6 +157,7 @@ wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/download/l
 wget -q https://github.com/MRAS-Diplomarbeit/MRAS-CLIENT-NIC/releases/download/latest/mrasdiscover.service
 sed -i "s|\[\[HOSTNAME\]\]|$HOSTNAME|g" mrasdiscover.service
 sudo mv mrasdiscover.service /etc/systemd/system/mrasdiscover.service
+sudo systemctl enable bt-agent
 sudo systemctl start mrasdiscover
 
 # mkdir MRAS
