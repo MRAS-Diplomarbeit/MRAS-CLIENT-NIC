@@ -135,7 +135,7 @@ wget -q https://raw.githubusercontent.com/MRAS-Diplomarbeit/MRAS-API-SPEC/main/c
 mkdir mrasclient
 cd mrasclient
 
-sudo apt-get install python3 python3-pip python3-venv pulseaudio pulseaudio-utils pulseaudio-module-bluetooth bluez-tools -y
+sudo apt-get install python3 python3-pip python3-venv pulseaudio pulseaudio-utils pulseaudio-module-bluetooth bluez-tools screen -y
 # setup Bluetooth
 sudo usermod -a -G bluetooth pi
 echo Class = 0x41c | sudo tee -a /etc/bluetooth/main.conf
@@ -159,6 +159,9 @@ sed -i "s|\[\[HOSTNAME\]\]|$HOSTNAME|g" mrasdiscover.service
 sudo mv mrasdiscover.service /etc/systemd/system/mrasdiscover.service
 sudo systemctl enable bt-agent
 sudo systemctl start mrasdiscover
+
+echo Please reboot!
+echo You might need to change the hostname manually to $HOSTNAME if the webpage/app are not working. Use sudo raspi-config to change the hostname
 
 # mkdir MRAS
 # cd MRAS

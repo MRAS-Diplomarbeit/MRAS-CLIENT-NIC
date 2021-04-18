@@ -9,36 +9,18 @@ class Client:
     def __init__(self, filepath):
         try:
             try:
+                print(filepath)
                 filepath = conf_filename()
+                print(filepath)
             except AttributeError:
                 pass
             file = open(r'' + filepath)
             yaml_file = yaml.load(file, Loader=yaml.FullLoader)
-            self._log_name = yaml_file['client']['logfile']
-            self._log_path = yaml_file['logs']['path']
-            self._max_size = yaml_file['logs']['maxSize']
-            self._old_logs = yaml_file['logs']['oldLogs']
+
             self._update_port = yaml_file['server']['client']['port']
             self.error = None
         except (IOError, TypeError, KeyError) as e:
             self.error = e
-
-    @property
-    def log_name(self):
-        return self._log_name
-
-    @property
-    def log_path(self):
-        return self._log_path
-
-    @property
-    def max_size(self):
-        # Load log size in MB and convert to KB and Byte
-        return self._max_size * 1024 * 1024
-
-    @property
-    def old_logs(self):
-        return self._old_logs
 
     @property
     def update_port(self):
