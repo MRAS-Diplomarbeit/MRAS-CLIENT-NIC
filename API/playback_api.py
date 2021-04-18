@@ -138,11 +138,12 @@ class Playback(Resource):
                     while sink_input_id is None:
                         try:
                             inter = DB.db.search(query.name == constants.db_interface_name)
-                            pulse.move_sink_input(pulse.get_sink_input_id(constants.rtp_recv_driver),
-                                                  pulse.get_card_id(inter['value']))
+                            sink_input_id = pulse.get_sink_input_id(constants.rtp_recv_driver)
+                            pulse.move_sink_input(sink_input_id,
+                                                  pulse.get_card_id(inter[0]['value']))
                         except SinkNotLoadedException:
                             print("Waiting on pulseaudio")
-
+                    print("finished")
                 except ElementNotFoundException as err:
                     logger.send_log(request.remote_addr + ":" + str(conf_logfile.update_port), log)
                     return {'code': status_codes.sink_not_found, 'message': str(err)}, 400

@@ -7,7 +7,7 @@ import helper
 import pulse_control
 import status_codes
 from DB.db_access import Access
-from excep import NoSinkInputsFoundException, NoCardsFoundException, ElementNotFoundException
+from excep import NoSinkInputsFoundException, NoCardsFoundException, ElementNotFoundException, SinkNotLoadedException
 
 
 class Method(Resource):
@@ -29,6 +29,18 @@ class Method(Resource):
             return {'code': status_codes.already_on_interface, 'message': "Interface is already in use"}
 
         # try to switch audio interface on current session
+        rtp_id = None
+        try:
+            rtp_id = pulse_control.get_sink_input_id(constants.rtp_recv_driver)
+            card_id = pulse_control.get_card_id(data['method'])
+            pulse_control.move_sink_input(rtp_id, card_id)
+        except SinkNotLoadedException:
+            # No listening sessions with multiple speakers
+            pass
+        except NoCardsFoundException:
+            return {'code': status_codes.interface_not_found, 'message': "The interface: " + data['method']
+                                                                        + " is not available"}, status_codes.bad_request
+
         try:
             bluetooth_sink_id = pulse_control.get_sink_input_id(constants.loopback_driver)
             card_id = pulse_control.get_card_id(data['method'])
@@ -38,7 +50,7 @@ class Method(Resource):
             # Ignoring error since the method can be changed while there is no one listening
         except NoCardsFoundException:
             return {'code': status_codes.interface_not_found, 'message': "The interface: " + data['method']
-                                                                         + " is not available"}
+                                                                        + " is not available"}, status_codes.bad_request
 
         # test if card is valid and changing audio output device, while no bluetooth device is connected
         try:

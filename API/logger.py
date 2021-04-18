@@ -10,7 +10,7 @@ def log(message) -> str:
 def send_log(ip: str, log_arr: [str]) -> bool:
     print("Logging to: " + ip)
     try:
-        resp = requests.post("http://" + ip + "/log", json={'lines': log_arr})
+        resp = requests.post("http://" + ip + "/log", json={'lines': log_arr}, timeout=5)
         return resp.ok
     except:
         print(helper.add_time("ERROR: Server is ignoring /log commands. Logs will not be saved"))
